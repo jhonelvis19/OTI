@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('sedes', function (Blueprint $table) {
             $table->id();
+
+            $table->string('nombre');
+
             $table->timestamps();
         });
+        
     }
 
     /**

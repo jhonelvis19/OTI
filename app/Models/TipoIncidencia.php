@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class TipoIncidencia extends Model
 {
-    //
+    protected $fillable = [
+        'nombre'
+    ];
+
+    public function informes()
+    {
+        return $this->belongsToMany(
+            Informe::class,
+            'informe_tipo_incidencia'
+        );
+    }
 }
