@@ -4,327 +4,540 @@
 
 <div class="max-w-6xl mx-auto">
 
-    <div class="mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-indigo-300 overflow-hidden">
 
-        <h1 class="text-4xl font-bold text-slate-800">
-            Nuevo Informe Técnico
-        </h1>
+        <!-- HEADER -->
+        <div class="flex items-center gap-3 px-8 py-5 border-b border-indigo-200 bg-slate-50">
+        
+                <img src="{{ asset('images/oti-ofic.png') }}"
+                alt="Logo"
+                class="h-12 w-auto object-contain">
+           
 
-        <p class="text-gray-500 mt-2">
-            Registro de mantenimiento y soporte técnico.
-        </p>
+            <div class="ml-auto text-right">
+                <h1 class="text-xl font-bold text-slate-800">
+                    {{ isset($informe) ? 'Editar Informe Técnico' : 'Nuevo Informe Técnico' }}
+                </h1>
+                <p class="text-xs text-gray-400 mt-0.5">
+                    Complete todos los campos requeridos.
+                </p>
+            </div>
+        </div>
 
+        
+
+        <!-- FORMULARIO -->
+        <div class="p-8">
+
+            <form method="POST"
+                action="{{ isset($informe)
+                    ? '/usuario/informes/'.$informe->id
+                    : (auth()->user()->rol == 'admin'
+                        ? '/admin/informes'
+                        : '/usuario/informes') }}">
+
+                @csrf
+                @if(isset($informe))
+                    @method('PUT')
+                @endif
+
+                <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
+
+                    <div class="absolute -top-3.5 left-5 bg-white px-3">
+                        <h2 class="text-sm font-semibold text-indigo-500 uppercase tracking-wide">
+                            Datos del Usuario
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-2">
+
+                        <!-- NOMBRE Y APELLIDO -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Nombre y Apellido
+                            </label>
+                            <input
+                                type="text"
+                                name="nombre_atendido"
+                                value="{{ $informe->nombre_atendido ?? '' }}"
+                                placeholder="Ingrese nombre completo"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <!-- DNI -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                DNI
+                            </label>
+                            <input
+                                type="text"
+                                name="dni_atendido"
+                                maxlength="8"
+                                value="{{ $informe->dni_atendido ?? '' }}"
+                                placeholder="00000000"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <!-- OFICINA -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Oficina
+                            </label>
+                            <select
+                                id="oficina"
+                                name="oficina_id"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm px-4 py-3 text-sm">
+
+                                <option value="">Seleccione una oficina</option>
+
+                                @foreach($oficinas as $oficina)
+                                    <option
+                                        value="{{ $oficina->id }}"
+                                        data-nombre="{{ $oficina->nombre }}">
+                                        {{ $oficina->nombre }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+                        <!-- NUEVA OFICINA -->
+                        <div id="otra_oficina_box" class="hidden">
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Nueva Oficina
+                            </label>
+                            <input
+                                type="text"
+                                name="otra_oficina"
+                                placeholder="Escriba la nueva oficina"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
+
+                    <div class="absolute -top-3.5 left-5 bg-white px-3">
+                        <h2 class="text-sm font-semibold text-indigo-500 uppercase tracking-wide">
+                            Persona que atendió el problema
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+
+                        <!-- SEDE -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Cede
+                            </label>
+                                <select
+                                    name="sede_id"
+                                    class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                        px-4 py-3 text-sm
+                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                        outline-none transition duration-200">
+
+                                    @foreach($sedes as $sede)
+                                        <option value="{{ $sede->id }}"
+                                            {{ (isset($informe) && $informe->sede_id == $sede->id) ? 'selected' : '' }}>
+                                            {{ $sede->nombre }}
+                                        </option>
+                                    @endforeach
+
+                                </select>
+                        </div>
+
+                        <!-- PERSONA ATENDIDA -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Persona Atendida
+                            </label>
+                            <select
+                                name="persona_atendida"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                                <option value="titular" {{ (isset($informe) && $informe->persona_atendida == 'titular') ? 'selected' : '' }}>
+                                    Titular
+                                </option>
+                                <option value="usuario" {{ (isset($informe) && $informe->persona_atendida == 'usuario') ? 'selected' : '' }}>
+                                    Usuario
+                                </option>
+                                <option value="otros" {{ (isset($informe) && $informe->persona_atendida == 'otros') ? 'selected' : '' }}>
+                                    Otros
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
+
+                    <div class="absolute -top-3.5 left-5 bg-white px-3">
+                        <h2 class="text-sm font-semibold text-indigo-500 uppercase tracking-wide">
+                            Información con respecto al mantenimiento
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
+
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Código Patrimonial
+                            </label>
+                            <input
+                                type="text"
+                                name="codigo_patrimonial"
+                                value="{{ $informe->codigo_patrimonial ?? '' }}"
+                                placeholder="Ingrese el código"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Tipo de Equipo
+                            </label>
+
+                            <div class="flex gap-3 items-end">
+
+                                <select
+                                    id="tipo_equipo_id"
+                                    name="tipo_equipo_id"
+                                    class="rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                        px-4 py-3 text-sm flex-1 min-w-0
+                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                        outline-none transition-all duration-300">
+                                    @foreach($tiposEquipos as $equipo)
+                                        <option value="{{ $equipo->id }}"
+                                            {{ (isset($informe) && $informe->tipo_equipo_id == $equipo->id) ? 'selected' : '' }}>
+                                            {{ $equipo->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <div id="otro_equipo_box"
+                                    class="flex-1 min-w-0 overflow-hidden transition-all duration-300"
+                                    style="max-width: 0; opacity: 0;">
+                                    <input
+                                        type="text"
+                                        name="otro_equipo"
+                                        id="otro_equipo_input"
+                                        placeholder="Especifique el equipo"
+                                        class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                            px-4 py-3 text-sm flex-1 min-w-0
+                                            focus:ring-2 focus:ring-indigo-400 
+                                            outline-none transition duration-300">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- MARCA -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Marca
+                            </label>
+                            <input
+                                type="text"
+                                name="marca"
+                                value="{{ $informe->marca ?? '' }}"
+                                placeholder="Ej: HP, Dell, Lenovo"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <!-- MODELO -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Modelo
+                            </label>
+                            <input
+                                type="text"
+                                name="modelo"
+                                value="{{ $informe->modelo ?? '' }}"
+                                placeholder="Ingrese el modelo"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <!-- SERIE -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Serie
+                            </label>
+                            <input
+                                type="text"
+                                name="serie"
+                                value="{{ $informe->serie ?? '' }}"
+                                placeholder="Número de serie"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                        </div>
+
+                        <div class="flex items-end gap-4">
+
+    <!-- DATOS PARA SU RESOLUCIÓN -->
+    <div class="flex-1">
+        <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            Datos para su Resolución
+        </label>
+        <div class="flex flex-wrap gap-3 p-4 rounded-xl border border-indigo-300 bg-slate-50 shadow-sm">
+            @foreach($tiposIncidencias as $incidencia)
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input
+                        type="checkbox"
+                        name="tipo_incidencia_id[]"
+                        value="{{ $incidencia->id }}"
+                        class="w-4 h-4 rounded border-indigo-300 text-indigo-600
+                               focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                    <span class="text-sm text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                        {{ $incidencia->nombre }}
+                    </span>
+                </label>
+            @endforeach
+        </div>
     </div>
 
+    <!-- CANTIDAD -->
+    <div class="w-28">
+        <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            Cantidad
+        </label>
+        <input
+            type="number"
+            name="numero_equipos"
+            value="{{ $informe->numero_equipos ?? '1' }}"
+            min="1"
+            placeholder="1"
+            class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                   px-4 py-3 text-sm text-center
+                   focus:ring-2 focus:ring-indigo-400 focus:bg-white
+                   outline-none transition duration-200">
+    </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-
-        <form method="POST" action="/admin/informes">
-
-            @csrf
-
-
-            <!-- ========================= -->
-            <!-- DATOS DEL ATENDIDO -->
-            <!-- ========================= -->
-
-            <div class="mb-10">
-
-                <h2 class="text-xl font-bold text-slate-700 mb-6">
-                    Datos del Atendido
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- NOMBRE -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Nombre Completo
-                        </label>
-
-                        <input
-                            type="text"
-                            name="nombre_atendido"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-
-                    </div>
-
-
-                    <!-- DNI -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            DNI
-                        </label>
-
-                        <input
-                            type="text"
-                            name="dni_atendido"
-                            maxlength="8"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+</div>
 
                     </div>
 
                 </div>
 
-            </div>
 
+                <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
 
-
-            <!-- ========================= -->
-            <!-- UBICACIÓN -->
-            <!-- ========================= -->
-
-            <div class="mb-10">
-
-                <h2 class="text-xl font-bold text-slate-700 mb-6">
-                    Ubicación
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- SEDE -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Sede
-                        </label>
-
-                        <select
-                            name="sede_id"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-
-                            <option value="1">Sede Principal</option>
-
-                        </select>
-
+                    <div class="absolute -top-3.5 left-5 bg-white px-3">
+                        <h2 class="text-sm font-semibold text-indigo-500 uppercase tracking-wide">
+                            FACtibilidad de solucion
+                        </h2>
                     </div>
 
-
-                    <!-- PERSONA -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Persona Atendida
-                        </label>
-
-                        <select
-                            name="persona_atendida"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-
-                            <option value="titular">
-                                Titular
-                            </option>
-
-                            <option value="usuario">
-                                Usuario
-                            </option>
-
-                            <option value="otros">
-                                Otros
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- ========================= -->
-            <!-- EQUIPO -->
-            <!-- ========================= -->
-
-            <div class="mb-10">
-
-                <h2 class="text-xl font-bold text-slate-700 mb-6">
-                    Datos del Equipo
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- CÓDIGO -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Código Patrimonial
-                        </label>
-
-                        <input
-                            type="text"
-                            name="codigo_patrimonial"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                    </div>
-
-
-                    <!-- TIPO -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Tipo de Equipo
-                        </label>
-
-                        <select
-                            name="tipo_equipo_id"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                            <option value="1">
-                                Computadora
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <!-- MARCA -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Marca
-                        </label>
-
-                        <input
-                            type="text"
-                            name="marca"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                    </div>
-
-
-                    <!-- MODELO -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Modelo
-                        </label>
-
-                        <input
-                            type="text"
-                            name="modelo"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                    </div>
-
-
-                    <!-- SERIE -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Serie
-                        </label>
-
-                        <input
-                            type="text"
-                            name="serie"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                    </div>
-
-
-                    <!-- CANTIDAD -->
-                    <div>
-
-                        <label class="block mb-2 font-semibold text-sm text-slate-700">
-                            Cantidad de Equipos
-                        </label>
-
-                        <input
-                            type="number"
-                            name="numero_equipos"
-                            value="1"
-                            min="1"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3">
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- ========================= -->
-            <!-- PROBLEMA -->
-            <!-- ========================= -->
-
-            <div class="mb-10">
-
-                <h2 class="text-xl font-bold text-slate-700 mb-6">
-                    Descripción Técnica
-                </h2>
-
-
-                <!-- PROBLEMA -->
-                <div class="mb-6">
-
-                    <label class="block mb-2 font-semibold text-sm text-slate-700">
-                        Descripción del Problema
-                    </label>
-
-                    <textarea
-                        name="descripcion_problema"
-                        rows="5"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-3"></textarea>
-
-                </div>
-
-
-                <!-- SOLUCIÓN -->
-                <div class="mb-6">
-
-                    <label class="block mb-2 font-semibold text-sm text-slate-700">
-                        Resolución Técnica
-                    </label>
-
-                    <textarea
-                        name="resolucion_tecnica"
-                        rows="5"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-3"></textarea>
-
-                </div>
-
-
-                <!-- OBSERVACIONES -->
-                <div>
-
-                    <label class="block mb-2 font-semibold text-sm text-slate-700">
-                        Observaciones
-                    </label>
-
-                    <textarea
-                        name="observaciones"
-                        rows="4"
-                        class="w-full border border-gray-300 rounded-xl px-4 py-3"></textarea>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- BOTÓN -->
-            <div class="pt-6 border-t border-gray-200">
-
-                <button
-                    type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl transition">
-
-                    Guardar Informe
-
-                </button>
-
-            </div>
-
-        </form>
+                    <div class="space-y-5 mt-2">
+
+                        <!-- PROBLEMA -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Descripción del Problema
+                            </label>
+                            <textarea
+                                name="descripcion_problema"
+                                rows="4"
+                                placeholder="Descripcion detallada del Mantenimiento..."
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200 resize-none">{{ $informe->descripcion_problema ?? '' }}</textarea>
+                        </div>
+
+
+                        <div>
+    <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        ¿El problema se pudo solucionar?
+    </label>
+
+    <div class="flex gap-3">
+
+        <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+                type="radio"
+                name="problema_solucionado"
+                value="si"
+                {{ (isset($informe) && $informe->problema_solucionado == 'si') ? 'checked' : '' }}
+                class="w-4 h-4 text-indigo-600 border-indigo-300
+                       focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+            <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                Sí
+            </span>
+        </label>
+
+        <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+                type="radio"
+                name="problema_solucionado"
+                value="no"
+                {{ (isset($informe) && $informe->problema_solucionado == 'no') ? 'checked' : '' }}
+                class="w-4 h-4 text-indigo-600 border-indigo-300
+                       focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+            <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                No
+            </span>
+        </label>
 
     </div>
 
 </div>
+
+<!-- RESOLUCIÓN TÉCNICA: solo aparece si se marca NO -->
+<div id="resolucion_box"
+     class="{{ (isset($informe) && $informe->problema_solucionado == 'no') ? '' : 'hidden' }}
+            transition-all duration-300">
+
+    <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        Resolución Técnica
+    </label>
+    <textarea
+        name="resolucion_tecnica"
+        rows="4"
+        placeholder="Indicar por qué no se pudo solucionar y si se debe a causas ajenas a la OTI..."
+        class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+               px-4 py-3 text-sm
+               focus:ring-2 focus:ring-indigo-400 focus:bg-white
+               outline-none transition duration-200 resize-none">{{ $informe->resolucion_tecnica ?? '' }}</textarea>
+
+</div>
+
+                        <!-- OBSERVACIONES -->
+                        <div>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Comentario y Observaciones
+                            </label>
+                            <textarea
+                                name="observaciones"
+                                rows="3"
+                                placeholder="Observaciones adicionales (opcional)..."
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                       px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200 resize-none">{{ $informe->observaciones ?? '' }}</textarea>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOTÓN SUBMIT -->
+                <div class="flex justify-end pt-2">
+
+                    <a href="{{ auth()->user()->rol == 'admin' ? '/admin/informes' : '/usuario/informes' }}"
+                       class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium
+                              hover:bg-slate-50 transition duration-200 mr-3">
+                        Cancelar
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
+                               text-white px-7 py-2.5 rounded-xl text-sm font-medium
+                               transition duration-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ isset($informe) ? 'Actualizar Informe' : 'Guardar Informe' }}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+const oficinaSelect = document.getElementById('oficina');
+const otraBox = document.getElementById('otra_oficina_box');
+
+oficinaSelect.addEventListener('change', function () {
+
+    const nombre =
+        this.options[this.selectedIndex]
+            .dataset.nombre;
+
+    if (nombre === 'Otros') {
+        otraBox.classList.remove('hidden');
+    } else {
+        otraBox.classList.add('hidden');
+    }
+});
+</script>
+
+<script>
+const tipoEquipoSelect = document.getElementById('tipo_equipo_id');
+const otroEquipoBox    = document.getElementById('otro_equipo_box');
+const otroEquipoInput  = document.getElementById('otro_equipo_input');
+
+tipoEquipoSelect.addEventListener('change', function () {
+    const texto = this.options[this.selectedIndex].text.toLowerCase();
+
+    if (texto === 'otros' || texto === 'otro') {
+        // Select se achica
+        tipoEquipoSelect.style.flex = '0 0 160px';
+        // Input aparece con animación
+        otroEquipoBox.style.maxWidth = '400px';
+        otroEquipoBox.style.opacity  = '1';
+        otroEquipoInput.focus();
+    } else {
+        tipoEquipoSelect.style.flex  = '1';
+        otroEquipoBox.style.maxWidth = '0';
+        otroEquipoBox.style.opacity  = '0';
+        otroEquipoInput.value        = '';
+    }
+});
+
+
+const radios = document.querySelectorAll('input[name="problema_solucionado"]');
+const resolucionBox = document.getElementById('resolucion_box');
+
+radios.forEach(radio => {
+    radio.addEventListener('change', function () {
+        if (this.value === 'no') {
+            resolucionBox.classList.remove('hidden');
+        } else {
+            resolucionBox.classList.add('hidden');
+            resolucionBox.querySelector('textarea').value = '';
+        }
+    });
+});
+
+</script>
+
+
+
 
 @endsection

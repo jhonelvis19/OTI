@@ -13,7 +13,7 @@
             </h1>
         </div>
 
-        <a href="/usuario/informes/create"
+        <a href="/admin/informes/create"
             class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
             text-white px-5 py-3 rounded-xl font-medium
             transition duration-200 shadow-md hover:shadow-lg">
@@ -45,7 +45,7 @@
                     </th>
 
                     <th class="text-left px-6 py-4">
-                        Ofincina 
+                        Oficina 
 
                     <th class="text-left px-6 py-4">
                         Atendido
@@ -86,7 +86,12 @@
                     </td>
 
                     <td class="px-6 py-4">
-                        {{ $informe->oficina }}
+                        @if($informe->otra_oficina)
+                            {{ $informe->otra_oficina }}
+                        @else
+                            {{ $informe->oficina?->nombre }}
+                        @endif
+                    </td>
 
                     <td class="px-6 py-4">
                         {{ $informe->nombre_atendido }}
@@ -100,14 +105,14 @@
 
                     </td>
                     <td class="px-6 py-4">
-                        {{ $informe->codigo_patrimonio }}
+                        {{ $informe->codigo_patrimonial}}
                     </td>
 
                     <td class="px-6 py-4">
 
                         <div class="flex gap-2 flex-wrap">
 
-                            <a href="/usuario/informes/{{ $informe->id }}"
+                            <a href="/admin/informes/{{ $informe->id }}"
                                class="text-slate-600 hover:text-red-600 transition duration-200"
                                title="Ver Detalle del Informe">
 
@@ -117,7 +122,7 @@
 
                             </a>
 
-                            <a href="/usuario/informes/{{ $informe->id }}/edit"
+                            <a href="/admin/informes/{{ $informe->id }}/edit"
                                class="text-slate-600 hover:text-yellow-600 transition duration-200"
                                title="Editar Informe">
 
@@ -127,7 +132,7 @@
 
                             </a>
 
-                            <a href="/usuario/informes/{{ $informe->id }}/pdf"
+                            <a href="/admin/informes/{{ $informe->id }}/pdf"
                             class="text-slate-600 hover:text-red-600 transition duration-200"
                             title="Descargar PDF">
 

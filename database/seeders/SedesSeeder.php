@@ -10,7 +10,6 @@ class SedesSeeder extends Seeder
     public function run(): void
     {
         DB::table('sedes')->insert([
-            ['nombre' => 'CEDE'],
             ['nombre' => 'CU'],
             ['nombre' => 'Ed. Cont.'],
             ['nombre' => 'Cen. Idioma'],

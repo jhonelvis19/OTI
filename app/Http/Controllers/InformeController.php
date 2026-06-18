@@ -1,10 +1,18 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Informe;
+use App\Models\Oficina;
+use App\Models\Sede;
+use App\Models\TipoEquipo;
+use App\Models\TipoIncidencia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class InformeController extends Controller
+
 {
     public function index()
     {
@@ -12,68 +20,223 @@ class InformeController extends Controller
 
         return view('admin.informes.index', compact('informes'));
     }
-    
-    public function show(Informe $informe)
+      
+    public function pdf(Informe $informe)
+{
+    // SI ES USUARIO NORMAL
+    if(auth()->user()->rol === 'usuario') {
+
+        // SOLO PUEDE VER SUS INFORMES
+        if($informe->user_id !== auth()->id()) {
+
+            abort(403, 'No tienes permisos');
+        }
+    }
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        'admin.informes.pdf',
+        compact('informe')
+    );
+
+    return $pdf->stream(
+        $informe->codigo_informe . '.pdf'
+    );
+} 
+    public function downloadPdf(Informe $informe)
     {
-    return view('admin.informes.show', compact('informe'));
+    $pdf = Pdf::loadView('admin.informes.pdf', compact('informe'));
+
+    return $pdf->download($informe->codigo_informe . '.pdf');
     }
 
     public function create()
     {
-        return view('admin.informes.create');
+        $oficinas = Oficina::all();
+        $sedes = Sede::all();
+        $tiposEquipos = TipoEquipo::all();
+        $tiposIncidencias = TipoIncidencia::all();
+
+        return view('admin.informes.create', compact(
+            'oficinas',
+            'sedes',
+            'tiposEquipos',
+            'tiposIncidencias'
+        ));
+    }   
+
+
+    //  STORE
+    public function store(Request $request)
+    {
+        return DB::transaction(function () use ($request) {
+
+            $ultimo = Informe::whereNotNull('codigo_informe')
+                ->lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
+
+            $numero = 1000;
+
+            if ($ultimo && $ultimo->codigo_informe) {
+                $numero = (int) str_replace('INF-', '', $ultimo->codigo_informe);
+            }
+
+            $numero++;
+
+            $codigo = 'INF-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
+
+            $informe = Informe::create([
+
+                'codigo_informe' => $codigo,
+                'fecha' => now()->toDateString(),
+                'hora_inicio' => now()->format('H:i:s'),
+
+                'user_id' => auth()->id(),
+
+                'nombre_atendido' => $request->nombre_atendido,
+                'dni_atendido' => $request->dni_atendido,
+
+                'sede_id' => $request->sede_id,
+
+                'oficina_id' => $request->oficina_id,
+                'otra_oficina' => $request->otra_oficina,
+
+                'persona_atendida' => $request->persona_atendida,
+
+                'codigo_patrimonial' => $request->codigo_patrimonial,
+
+                'tipo_equipo_id' => $request->tipo_equipo_id,
+
+                'marca' => $request->marca,
+                'modelo' => $request->modelo,
+                'serie' => $request->serie,
+
+                'numero_equipos' => $request->numero_equipos,
+
+                'descripcion_problema' => $request->descripcion_problema,
+
+                'resolucion_tecnica' => $request->resolucion_tecnica,
+
+                'observaciones' => $request->observaciones,
+
+                'solucionado' => true,
+                'brindaron_facilidad' => false,
+            ]);
+
+            $informe->tiposIncidencias()
+                ->attach($request->tipo_incidencia_id);
+
+            return redirect(
+                auth()->user()->rol == 'admin'
+                    ? '/admin/informes'
+                    : '/usuario/informes'
+            )->with('success', 'Informe registrado correctamente');
+        });
+    }
+    
+    // MIS INFORMES USUARIO
+    public function misInformes()
+    {
+        $informes = Informe::where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view(
+            'usuario.informes.index',
+            compact('informes')
+        );
     }
 
-    public function store(Request $request)
-{
-    Informe::create([
+    // SHOW
 
-        // AUTOMÁTICOS
-        'codigo_informe' => 'INF-' . rand(1000, 9999),
+    public function show(Informe $informe)
+        {
+        if (
+            auth()->user()->rol === 'usuario' &&
+            $informe->user_id != auth()->id()
+        ) {
+            abort(403, 'No tienes permisos');
+        }
 
-        'fecha' => now()->toDateString(),
+        return view('usuario.informes.show', compact('informe'));
+        }
 
-        'hora_inicio' => now()->format('H:i:s'),
 
-        'user_id' => auth()->id(),
+        public function edit(Informe $informe)
+        {
+            if ($informe->user_id != auth()->id()) {
+                abort(403, 'No tienes permisos');
+            }
 
-        // DATOS DEL ATENDIDO
-        'nombre_atendido' => $request->nombre_atendido,
+            $oficinas = Oficina::all();
+            $sedes = Sede::all();
+            $tiposEquipos = TipoEquipo::all();
+            $tiposIncidencias = TipoIncidencia::all();
 
-        'dni_atendido' => $request->dni_atendido,
+            return view(
+                'admin.informes.create',
+                compact(
+                    'informe',
+                    'oficinas',
+                    'sedes',
+                    'tiposEquipos',
+                    'tiposIncidencias'
+                )
+            );
+        }
 
-        // UBICACIÓN
-        'sede_id' => $request->sede_id,
+        //MIS INFORMES ADMIN
+        public function misInformesAdmin()
+        {
+            $informes = Informe::where('user_id', auth()->id())
+                ->latest()
+                ->get();
 
-        'persona_atendida' => $request->persona_atendida,
+            return view(
+                'admin.informes.mis_informes',
+                compact('informes')
+            );
+        }
+    // UPDATE
+    public function update(Request $request, Informe $informe)
+    {
+        if ($informe->user_id != auth()->id()) {
+            abort(403, 'No tienes permisos');
+        }
 
-        // EQUIPO
-        'codigo_patrimonial' => $request->codigo_patrimonial,
+        $informe->update([
 
-        'tipo_equipo_id' => $request->tipo_equipo_id,
+            'nombre_atendido' => $request->nombre_atendido,
+            'dni_atendido' => $request->dni_atendido,
 
-        'marca' => $request->marca,
+            'sede_id' => $request->sede_id,
 
-        'modelo' => $request->modelo,
+            'oficina_id' => $request->oficina_id,
+            'otra_oficina' => $request->otra_oficina,
 
-        'serie' => $request->serie,
+            'persona_atendida' => $request->persona_atendida,
 
-        'numero_equipos' => $request->numero_equipos,
+            'codigo_patrimonial' => $request->codigo_patrimonial,
 
-        // DESCRIPCIÓN
-        'descripcion_problema' => $request->descripcion_problema,
+            'tipo_equipo_id' => $request->tipo_equipo_id,
 
-        'resolucion_tecnica' => $request->resolucion_tecnica,
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+            'serie' => $request->serie,
 
-        'observaciones' => $request->observaciones,
+            'numero_equipos' => $request->numero_equipos,
 
-        // DEFAULTS
-        'solucionado' => true,
+            'descripcion_problema' => $request->descripcion_problema,
+            'resolucion_tecnica' => $request->resolucion_tecnica,
 
-        'brindaron_facilidad' => false,
+            'observaciones' => $request->observaciones,
+        ]);
 
-    ]);
+        $informe->tiposIncidencias()
+            ->sync($request->tipo_incidencia_id);
 
-    return redirect('/admin/informes')
-        ->with('success', 'Informe registrado correctamente');
-}
+        return redirect()->back()
+            ->with('success', 'Informe actualizado correctamente');
+    }
+
 }

@@ -3,7 +3,7 @@
 @section('content')
 
 <h1 class="text-3xl font-bold">
-    Nuevo Informe
+    MI PERFIL
 </h1>
 
 @endsection

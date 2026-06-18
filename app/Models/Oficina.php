@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Oficina extends Model
+
 {
+    protected $table = 'oficinas'; 
     protected $fillable = [
         'nombre'
     ];
@@ -15,3 +17,4 @@ class Oficina extends Model
         return $this->hasMany(Informe::class);
     }
 }
+

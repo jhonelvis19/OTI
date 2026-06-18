@@ -6,6 +6,7 @@
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
 
+        <!-- HEADER -->
         <div class="mb-8">
 
             <h1 class="text-4xl font-bold text-slate-800">
@@ -23,8 +24,10 @@
         </div>
 
 
+        <!-- DATOS -->
         <div class="grid grid-cols-2 gap-6">
 
+            <!-- FECHA -->
             <div>
 
                 <p class="text-sm text-gray-500">
@@ -38,6 +41,7 @@
             </div>
 
 
+            <!-- TÉCNICO -->
             <div>
 
                 <p class="text-sm text-gray-500">
@@ -51,6 +55,7 @@
             </div>
 
 
+            <!-- ATENDIDO -->
             <div>
 
                 <p class="text-sm text-gray-500">
@@ -64,6 +69,7 @@
             </div>
 
 
+            <!-- DNI -->
             <div>
 
                 <p class="text-sm text-gray-500">
@@ -79,6 +85,29 @@
         </div>
 
 
+        <!-- BOTÓN PDF -->
+        <div class="mt-8">
+
+            <a href="/admin/informes/{{ $informe->id }}/pdf"
+               target="_blank"
+               class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl">
+
+                Ver PDF
+
+            </a>
+                
+        <!-- DESCARGAR PDF -->
+            <a href="/admin/informes/{{ $informe->id }}/pdf/download"
+                class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl">
+
+                Descargar PDF
+
+            </a>
+
+        </div>
+
+
+        <!-- PROBLEMA -->
         <div class="mt-8">
 
             <p class="text-sm text-gray-500 mb-2">
@@ -94,6 +123,7 @@
         </div>
 
 
+        <!-- RESOLUCIÓN -->
         <div class="mt-6">
 
             <p class="text-sm text-gray-500 mb-2">
