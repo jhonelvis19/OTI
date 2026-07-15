@@ -127,7 +127,7 @@
 
                             </a>
 
-                            <a href="/usuario/informes/{{ $informe->id }}/pdf"
+                            <a href="/usuario/informes/{{ $informe->id }}/pdf/download"
                             class="text-slate-600 hover:text-red-600 transition duration-200"
                             title="Descargar PDF">
 
