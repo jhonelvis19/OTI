@@ -41,6 +41,8 @@
                     @method('PUT')
                 @endif
 
+
+
                 <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
 
                     <div class="absolute -top-3.5 left-5 bg-white px-3">
@@ -59,9 +61,9 @@
                             <input
                                 type="text"
                                 name="nombre_atendido"
-                                value="{{ old('nombre_atendido') ?? ($informe->nombre_atendido ?? '') }}"
+                                value="{{ old('nombre_atendido', $informe->nombre_atendido ?? '') }}"
                                 placeholder="Ingrese nombre completo"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('nombre_atendido') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
@@ -79,9 +81,9 @@
                                 type="text"
                                 name="dni_atendido"
                                 maxlength="8"
-                                value="{{ old('dni_atendido') ?? ($informe->dni_atendido ?? '') }}"
+                                value="{{ old('dni_atendido', $informe->dni_atendido ?? '') }}"
                                 placeholder="00000000"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('dni_atendido') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
@@ -98,12 +100,15 @@
                             <select
                                 id="oficina"
                                 name="oficina_id"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm px-4 py-3 text-sm">
+                                class="w-full rounded-xl border {{ $errors->has('oficina_id') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
 
                                 <option value="">Seleccione una oficina</option>
 
                                 @foreach($oficinas as $oficina)
-                                    <option value="{{ $oficina->id }}">
+                                    <option value="{{ $oficina->id }}"
+                                        {{ old('oficina_id', $informe->oficina_id ?? '') == $oficina->id ? 'selected' : '' }}>
                                         {{ $oficina->nombre }}
                                     </option>
                                 @endforeach
@@ -113,9 +118,9 @@
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                                
 
-                        <div id="otra_oficina_box" class="hidden">
+
+                        <div id="otra_oficina_box" class="{{ old('oficina_id', $informe->oficina_id ?? '') == $oficinaOtrosId ? '' : 'hidden' }}">
                             <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 Nueva Oficina
                             </label>
@@ -124,8 +129,14 @@
                                 type="text"
                                 id="otra_oficina"
                                 name="otra_oficina"
+                                value="{{ old('otra_oficina', $informe->otra_oficina ?? '') }}"
                                 placeholder="Escriba la nueva oficina"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm px-4 py-3 text-sm">
+                                class="w-full rounded-xl border {{ $errors->has('otra_oficina') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm px-4 py-3 text-sm
+                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                                       outline-none transition duration-200">
+                            @error('otra_oficina')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                     </div>
@@ -216,9 +227,9 @@
                             <input
                                 type="text"
                                 name="codigo_patrimonial"
-                                value="{{ old('codigo_patrimonial') ?? ($informe->codigo_patrimonial ?? '') }}"
+                                value="{{ old('codigo_patrimonial', $informe->codigo_patrimonial ?? '') }}"
                                 placeholder="Ingrese el código"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('codigo_patrimonial') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
@@ -238,13 +249,14 @@
         <select
             id="tipo_equipo_id"
             name="tipo_equipo_id"
-            class="rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+            class="rounded-xl border {{ $errors->has('tipo_equipo_id') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                 px-4 py-3 text-sm flex-1 min-w-0
                 focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                 outline-none transition-all duration-300">
 
             @foreach($tiposEquipos as $equipo)
-                <option value="{{ $equipo->id }}">
+                <option value="{{ $equipo->id }}"
+                    {{ old('tipo_equipo_id', $informe->tipo_equipo_id ?? '') == $equipo->id ? 'selected' : '' }}>
                     {{ $equipo->nombre }}
                 </option>
             @endforeach
@@ -256,16 +268,20 @@
         @enderror
 
         <!-- INPUT OCULTO -->
-        <div id="otro_equipo_box" class="hidden flex-1 min-w-0">
+        <div id="otro_equipo_box" class="{{ old('tipo_equipo_id', $informe->tipo_equipo_id ?? '') == $tipoEquipoOtrosId ? 'flex-1 min-w-0' : 'hidden flex-1 min-w-0' }}">
 
             <input
                 type="text"
                 id="otro_equipo_input"
                 name="otro_equipo"
+                value="{{ old('otro_equipo', $informe->otro_equipo ?? '') }}"
                 placeholder="Especifique el equipo"
-                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                class="w-full rounded-xl border {{ $errors->has('otro_equipo') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                     px-4 py-3 text-sm
                     focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none">
+            @error('otro_equipo')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            @enderror
 
         </div>
 
@@ -280,9 +296,9 @@
                             <input
                                 type="text"
                                 name="marca"
-                                value="{{ old('marca') ?? ($informe->marca ?? '') }}"
+                                value="{{ old('marca', $informe->marca ?? '') }}"
                                 placeholder="Ej: HP, Dell, Lenovo"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('marca') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
@@ -300,9 +316,9 @@
                             <input
                                 type="text"
                                 name="modelo"
-                                value="{{ old('modelo') ?? ($informe->modelo ?? '') }}"
+                                value="{{ old('modelo', $informe->modelo ?? '') }}"
                                 placeholder="Ingrese el modelo"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('modelo') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
@@ -407,10 +423,13 @@
                                 name="descripcion_problema"
                                 rows="4"
                                 placeholder="Descripcion detallada del Mantenimiento..."
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('descripcion_problema') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                       outline-none transition duration-200 resize-none">{{ old('descripcion_problema') ?? ($informe->descripcion_problema ?? '') }}</textarea>
+                                       outline-none transition duration-200 resize-none">{{ old('descripcion_problema', $informe->descripcion_problema ?? '') }}</textarea>
+                            @error('descripcion_problema')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
 
@@ -426,8 +445,7 @@
                                         type="radio"
                                         name="problema_solucionado"
                                         value="si"
-                                        {{ (isset($informe) && $informe->problema_solucionado == 'si') ? 'checked' : '' }}
-                                        {{ (old('problema_solucionado') == 'si') ? 'checked' : '' }}
+                                        {{ old('problema_solucionado', isset($informe) ? ($informe->solucionado ? 'si' : 'no') : 'si') == 'si' ? 'checked' : '' }}
                                         class="w-4 h-4 text-indigo-600 border-indigo-300
                                             focus:ring-2 focus:ring-indigo-400 cursor-pointer">
                                     <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
@@ -440,8 +458,7 @@
                                         type="radio"
                                         name="problema_solucionado"
                                         value="no"
-                                        {{ (isset($informe) && $informe->problema_solucionado == 'no') ? 'checked' : '' }}
-                                        {{ (old('problema_solucionado') == 'no') ? 'checked' : '' }}
+                                        {{ old('problema_solucionado', isset($informe) ? ($informe->solucionado ? 'si' : 'no') : '') == 'no' ? 'checked' : '' }}
                                         class="w-4 h-4 text-indigo-600 border-indigo-300
                                             focus:ring-2 focus:ring-indigo-400 cursor-pointer">
                                     <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
@@ -455,21 +472,24 @@
 
                         <!-- RESOLUCIÓN TÉCNICA: solo aparece si se marca NO -->
                         <div id="resolucion_box"
-                            class="{{ (isset($informe) && $informe->problema_solucionado == 'no') ? '' : 'hidden' }}
+                            class="{{ old('problema_solucionado', isset($informe) ? ($informe->solucionado ? 'si' : 'no') : '') == 'no' ? '' : 'hidden' }}
                                     transition-all duration-300">
 
                             <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 Resolución Técnica
                             </label>
                             <textarea
+                                id="resolucion_tecnica"
                                 name="resolucion_tecnica"
                                 rows="4"
                                 placeholder="Indicar por qué no se pudo solucionar y si se debe a causas ajenas a la OTI..."
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('resolucion_tecnica') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                     px-4 py-3 text-sm
                                     focus:ring-2 focus:ring-indigo-400 focus:bg-white
-                                    outline-none transition duration-200 resize-none">{{ old('resolucion_tecnica') ?? ($informe->resolucion_tecnica ?? '') }}</textarea>
-
+                                    outline-none transition duration-200 resize-none">{{ old('resolucion_tecnica', $informe->resolucion_tecnica ?? '') }}</textarea>
+                            @error('resolucion_tecnica')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- OBSERVACIONES -->
@@ -481,10 +501,13 @@
                                 name="observaciones"
                                 rows="3"
                                 placeholder="Observaciones adicionales (opcional)..."
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                class="w-full rounded-xl border {{ $errors->has('observaciones') ? 'border-red-400 bg-red-50' : 'border-indigo-300 bg-slate-50' }} shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                       outline-none transition duration-200 resize-none">{{ old('observaciones') ?? ($informe->observaciones ?? '') }}</textarea>
+                                       outline-none transition duration-200 resize-none">{{ old('observaciones', $informe->observaciones ?? '') }}</textarea>
+                            @error('observaciones')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                     </div>
@@ -550,6 +573,25 @@ document.addEventListener('DOMContentLoaded', function () {
         inputId: 'otro_equipo_input',
         valor: {{ $tipoEquipoOtrosId }}
     });
+
+    // Auto-scroll al primer campo con error de validación si existe
+    @if($errors->any())
+        setTimeout(function() {
+            const firstErrorField = document.querySelector('.border-red-400, .text-red-500');
+            if (firstErrorField) {
+                // Desplazarse de forma suave y centrar el campo
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Darle foco si es un input, select o textarea
+                const inputElement = firstErrorField.closest('input, select, textarea') || 
+                                     firstErrorField.querySelector('input, select, textarea') || 
+                                     firstErrorField;
+                if (typeof inputElement.focus === 'function') {
+                    inputElement.focus();
+                }
+            }
+        }, 300); // Pequeño delay para asegurar que el DOM y otros scripts de renderizado terminen
+    @endif
 
 });
 

@@ -105,6 +105,9 @@ public function store(Request $request)
 
         'descripcion_problema' => 'required|string',
 
+        'problema_solucionado' => 'required|in:si,no',
+        'resolucion_tecnica' => 'required_if:problema_solucionado,no|nullable|string',
+
         'observaciones' => 'required|string',
 
     ], [
@@ -129,6 +132,9 @@ public function store(Request $request)
         'modelo.required' => 'Debe ingresar el modelo del equipo.',
 
         'descripcion_problema.required' => 'Debe ingresar la descripción del problema.',
+
+        'problema_solucionado.required' => 'Debe indicar si el problema se pudo solucionar.',
+        'resolucion_tecnica.required_if' => 'Debe ingresar la resolución técnica si el problema no se solucionó.',
 
         'observaciones.required' => 'Debe ingresar las observaciones.',
     ]);
@@ -181,11 +187,11 @@ public function store(Request $request)
 
             'descripcion_problema' => $request->descripcion_problema,
 
-            'resolucion_tecnica' => $request->resolucion_tecnica,
+            'resolucion_tecnica' => $request->problema_solucionado == 'no' ? $request->resolucion_tecnica : null,
 
             'observaciones' => $request->observaciones,
 
-            'solucionado' => true,
+            'solucionado' => $request->problema_solucionado == 'si',
             'brindaron_facilidad' => true,
         ]);
 
@@ -215,7 +221,8 @@ public function store(Request $request)
     // SHOW
 
     public function show(Informe $informe)
-        {
+    {
+        // Usuario normal solo puede ver sus propios informes
         if (
             auth()->user()->rol === 'usuario' &&
             $informe->user_id != auth()->id()
@@ -223,8 +230,13 @@ public function store(Request $request)
             abort(403, 'No tienes permisos');
         }
 
-        return view('usuario.informes.show', compact('informe'));
-        }
+        // Redirige a la vista correcta según el rol
+        $view = auth()->user()->rol === 'admin'
+            ? 'admin.informes.show'
+            : 'usuario.informes.show';
+
+        return view($view, compact('informe'));
+    }
 
 
         public function edit(Informe $informe)
@@ -271,31 +283,65 @@ public function store(Request $request)
             abort(403, 'No tienes permisos');
         }
 
-        $informe->update([
+        $oficinaOtrosId = Oficina::where('nombre', 'Otros')->value('id');
+        $tipoEquipoOtrosId = TipoEquipo::where('nombre', 'Otros')->value('id');
 
+        $request->validate([
+            'nombre_atendido' => 'required|string|max:255',
+            'dni_atendido' => 'required|digits:8',
+            'sede_id' => 'required',
+            'oficina_id' => 'required',
+            'otra_oficina' => $request->oficina_id == $oficinaOtrosId
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255',
+            'persona_atendida' => 'required|string|max:255',
+            'tipo_equipo_id' => 'required',
+            'otro_equipo' => $request->tipo_equipo_id == $tipoEquipoOtrosId
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255',
+            'codigo_patrimonial' => 'required|string|max:255',
+            'marca' => 'required|string|max:255',
+            'modelo' => 'required|string|max:255',
+            'descripcion_problema' => 'required|string',
+            'problema_solucionado' => 'required|in:si,no',
+            'resolucion_tecnica' => 'required_if:problema_solucionado,no|nullable|string',
+            'observaciones' => 'required|string',
+        ], [
+            'nombre_atendido.required' => 'Debe ingresar el nombre del atendido.',
+            'dni_atendido.required' => 'Debe ingresar el DNI.',
+            'dni_atendido.digits' => 'El DNI debe tener 8 dígitos.',
+            'sede_id.required' => 'Debe seleccionar una sede.',
+            'oficina_id.required' => 'Debe seleccionar una oficina.',
+            'otra_oficina.required' => 'Debe escribir el nombre de la nueva oficina.',
+            'persona_atendida.required' => 'Debe indicar la persona atendida.',
+            'tipo_equipo_id.required' => 'Debe seleccionar un tipo de equipo.',
+            'otro_equipo.required' => 'Debe especificar el tipo de equipo.',
+            'codigo_patrimonial.required' => 'Debe ingresar el código patrimonial del equipo.',
+            'marca.required' => 'Debe ingresar la marca del equipo.',
+            'modelo.required' => 'Debe ingresar el modelo del equipo.',
+            'descripcion_problema.required' => 'Debe ingresar la descripción del problema.',
+            'problema_solucionado.required' => 'Debe indicar si el problema se pudo solucionar.',
+            'resolucion_tecnica.required_if' => 'Debe ingresar la resolución técnica si el problema no se solucionó.',
+            'observaciones.required' => 'Debe ingresar las observaciones.',
+        ]);
+
+        $informe->update([
             'nombre_atendido' => $request->nombre_atendido,
             'dni_atendido' => $request->dni_atendido,
-
             'sede_id' => $request->sede_id,
-
             'oficina_id' => $request->oficina_id,
             'otra_oficina' => $request->otra_oficina,
-
             'persona_atendida' => $request->persona_atendida,
-
             'codigo_patrimonial' => $request->codigo_patrimonial,
-
             'tipo_equipo_id' => $request->tipo_equipo_id,
-
+            'otro_equipo' => $request->otro_equipo,
             'marca' => $request->marca,
             'modelo' => $request->modelo,
             'serie' => $request->serie,
-
             'numero_equipos' => $request->numero_equipos,
-
             'descripcion_problema' => $request->descripcion_problema,
-            'resolucion_tecnica' => $request->resolucion_tecnica,
-
+            'resolucion_tecnica' => $request->problema_solucionado == 'no' ? $request->resolucion_tecnica : null,
+            'solucionado' => $request->problema_solucionado == 'si',
             'observaciones' => $request->observaciones,
         ]);
 

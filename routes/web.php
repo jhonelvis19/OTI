@@ -28,20 +28,16 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/informes', [InformeController::class, 'index']);
 
-        Route::get('/usuarios', function () {
-            return view('admin.usuarios.index');
-        });
-
         Route::get('/configuracion', function () {
             return view('admin.configuracion.index');
         });
-        Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update']);
-        
+
         Route::get('/usuarios', [UsuarioController::class, 'index']);
 
         Route::get('/usuarios/create', [UsuarioController::class, 'create']);
 
-        Route::post('/usuarios', [UsuarioController::class, 'store']);  
+        Route::post('/usuarios', [UsuarioController::class, 'store']);
+
         Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update']);
 
         Route::delete('/usuarios/{usuario}', [UsuarioController::class, 'destroy']);
