@@ -31,7 +31,9 @@
 
             <form method="POST"
                 action="{{ isset($informe)
-                    ? '/usuario/informes/'.$informe->id
+                    ? (auth()->user()->rol == 'admin'
+                        ? '/admin/informes/'.$informe->id
+                        : '/usuario/informes/'.$informe->id)
                     : (auth()->user()->rol == 'admin'
                         ? '/admin/informes'
                         : '/usuario/informes') }}">
@@ -40,6 +42,8 @@
                 @if(isset($informe))
                     @method('PUT')
                 @endif
+
+                <input type="hidden" name="redirect_to" value="{{ old('redirect_to', url()->previous()) }}">
 
 
 
@@ -516,9 +520,16 @@
 
 
                 <!-- BOTÓN SUBMIT -->
+                @php
+                    $cancelUrl = old('redirect_to', url()->previous());
+                    // Prevenir bucles infinitos o redirecciones a la misma página de edit/create
+                    if (!$cancelUrl || $cancelUrl == url()->current() || !str_contains($cancelUrl, auth()->user()->rol)) {
+                        $cancelUrl = auth()->user()->rol == 'admin' ? '/admin/informes' : '/usuario/informes';
+                    }
+                @endphp
                 <div class="flex justify-end pt-2">
 
-                    <a href="{{ auth()->user()->rol == 'admin' ? '/admin/informes' : '/usuario/informes' }}"
+                    <a href="{{ $cancelUrl }}"
                        class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium
                               hover:bg-slate-50 transition duration-200 mr-3">
                         Cancelar

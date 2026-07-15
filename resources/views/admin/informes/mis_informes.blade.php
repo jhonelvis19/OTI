@@ -30,142 +30,148 @@
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
-        <table class="w-full">
+        <!-- SOLO LA TABLA HACE SCROLL -->
+        <div class="overflow-x-auto">
 
-            <thead class="bg-slate-100">
+            <table class="w-full" style="min-width: 950px;">
 
-                <tr>
+                <thead class="bg-slate-100">
 
-                    <th class="text-left px-6 py-4">
-                        Código
-                    </th>
+                    <tr>
 
-                    <th class="text-left px-6 py-4">
-                        Fecha
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Código
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Oficina 
+                        <th class="text-left px-6 py-4">
+                            Fecha
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Atendido
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Oficina 
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Marca
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Atendido
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Modelo
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Marca
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Codigo de Patrimonio
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Modelo
+                        </th>
 
-                    <th class="text-left px-6 py-4">
-                        Acciones
-                    </th>
+                        <th class="text-left px-6 py-4">
+                            Codigo de Patrimonio
+                        </th>
 
-                </tr>
+                        <th class="text-left px-6 py-4">
+                            Acciones
+                        </th>
 
-            </thead>
+                    </tr>
 
-            <tbody>
+                </thead>
 
-                @forelse($informes as $informe)
+                <tbody>
 
-                <tr class="border-b border-gray-100">
+                    @forelse($informes as $informe)
 
-                    <td class="px-6 py-4">
-                        {{ $informe->codigo_informe }}
-                    </td>
+                    <tr class="border-b border-gray-100">
 
-                    <td class="px-6 py-4">
-                        {{ $informe->fecha }}
-                    </td>
+                        <td class="px-6 py-4">
+                            {{ $informe->codigo_informe }}
+                        </td>
 
-                    <td class="px-6 py-4">
-                        @if($informe->otra_oficina)
-                            {{ $informe->otra_oficina }}
-                        @else
-                            {{ $informe->oficina?->nombre }}
-                        @endif
-                    </td>
+                        <td class="px-6 py-4">
+                            {{ $informe->fecha }}
+                        </td>
 
-                    <td class="px-6 py-4">
-                        {{ $informe->nombre_atendido }}
-                    </td>
+                        <td class="px-6 py-4">
+                            @if($informe->otra_oficina)
+                                {{ $informe->otra_oficina }}
+                            @else
+                                {{ $informe->oficina?->nombre }}
+                            @endif
+                        </td>
 
-                    <td class="px-6 py-4">
-                        {{ $informe->marca }} 
-                    </td>
-                    <td class="px-6 py-4">
-                        {{ $informe->modelo }}
+                        <td class="px-6 py-4">
+                            {{ $informe->nombre_atendido }}
+                        </td>
 
-                    </td>
-                    <td class="px-6 py-4">
-                        {{ $informe->codigo_patrimonial}}
-                    </td>
+                        <td class="px-6 py-4">
+                            {{ $informe->marca }} 
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $informe->modelo }}
 
-                    <td class="px-6 py-4">
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $informe->codigo_patrimonial}}
+                        </td>
 
-                        <div class="flex gap-2 flex-wrap">
+                        <td class="px-6 py-4">
 
-                            <a href="/admin/informes/{{ $informe->id }}"
-                               class="text-slate-600 hover:text-red-600 transition duration-200"
-                               title="Ver Detalle del Informe">
+                            <div class="flex items-center gap-3">
+
+                                <a href="/admin/informes/{{ $informe->id }}"
+                                   class="text-slate-600 hover:text-indigo-600 transition duration-200"
+                                   title="Ver Detalle del Informe">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+
+                                </a>
+
+                                <a href="/admin/informes/{{ $informe->id }}/edit"
+                                   class="text-slate-600 hover:text-yellow-600 transition duration-200"
+                                   title="Editar Informe">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+
+                                </a>
+
+                                <a href="/admin/informes/{{ $informe->id }}/pdf/download"
+                                class="text-slate-600 hover:text-red-600 transition duration-200"
+                                title="Descargar PDF">
 
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
 
-                            </a>
+                                </a>
 
-                            <a href="/admin/informes/{{ $informe->id }}/edit"
-                               class="text-slate-600 hover:text-yellow-600 transition duration-200"
-                               title="Editar Informe">
+                            </div>
 
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
+                        </td>
 
-                            </a>
+                    </tr>
 
-                            <a href="/admin/informes/{{ $informe->id }}/pdf"
-                            class="text-slate-600 hover:text-red-600 transition duration-200"
-                            title="Descargar PDF">
+                    @empty
 
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
+                    <tr>
 
-                            </a>
+                        <td colspan="8"
+                            class="text-center py-8 text-gray-500">
 
-                        </div>
+                            No tienes informes registrados.
 
-                    </td>
+                        </td>
 
-                </tr>
+                    </tr>
 
-                @empty
+                    @endforelse
 
-                <tr>
+                </tbody>
 
-                    <td colspan="4"
-                        class="text-center py-8 text-gray-500">
+            </table>
 
-                        No tienes informes registrados.
-
-                    </td>
-
-                </tr>
-
-                @endforelse
-
-            </tbody>
-
-        </table>
+        </div>
 
     </div>
 

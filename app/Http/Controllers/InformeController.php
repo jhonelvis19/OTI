@@ -250,6 +250,9 @@ public function store(Request $request)
             $tiposEquipos = TipoEquipo::all();
             $tiposIncidencias = TipoIncidencia::all();
 
+            $oficinaOtrosId = Oficina::where('nombre', 'Otros')->value('id');
+            $tipoEquipoOtrosId = TipoEquipo::where('nombre', 'Otros')->value('id');
+
             return view(
                 'admin.informes.create',
                 compact(
@@ -257,7 +260,9 @@ public function store(Request $request)
                     'oficinas',
                     'sedes',
                     'tiposEquipos',
-                    'tiposIncidencias'
+                    'tiposIncidencias',
+                    'oficinaOtrosId',
+                    'tipoEquipoOtrosId'
                 )
             );
         }
@@ -348,7 +353,14 @@ public function store(Request $request)
         $informe->tiposIncidencias()
             ->sync($request->tipo_incidencia_id);
 
-        return redirect()->back()
+        $redirectTo = $request->input('redirect_to');
+        
+        // Evitar bucles o redirección a la misma url de edición
+        if (!$redirectTo || str_contains($redirectTo, '/edit') || !str_contains($redirectTo, auth()->user()->rol)) {
+            $redirectTo = auth()->user()->rol == 'admin' ? '/admin/informes' : '/usuario/informes';
+        }
+
+        return redirect($redirectTo)
             ->with('success', 'Informe actualizado correctamente');
     }
 

@@ -209,14 +209,24 @@
             </div>
 
             <!-- BOTONES DE ACCIONES -->
+            @php
+                $previousUrl = url()->previous();
+                $volverUrl = '/admin/informes';
+                $volverTexto = 'Volver al Historial';
+
+                if (str_contains($previousUrl, 'mis-informes')) {
+                    $volverUrl = '/admin/mis-informes';
+                    $volverTexto = 'Volver a Mis Informes';
+                }
+            @endphp
             <div class="flex justify-between items-center pt-2">
-                <a href="/admin/informes"
+                <a href="{{ $volverUrl }}"
                    class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium
                           hover:bg-slate-50 transition duration-200 inline-flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Volver al Historial
+                    {{ $volverTexto }}
                 </a>
 
                 <div class="flex gap-3">
