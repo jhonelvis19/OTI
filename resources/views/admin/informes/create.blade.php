@@ -59,12 +59,15 @@
                             <input
                                 type="text"
                                 name="nombre_atendido"
-                                value="{{ $informe->nombre_atendido ?? '' }}"
+                                value="{{ old('nombre_atendido') ?? ($informe->nombre_atendido ?? '') }}"
                                 placeholder="Ingrese nombre completo"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
+                            @error('nombre_atendido')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- DNI -->
@@ -76,19 +79,22 @@
                                 type="text"
                                 name="dni_atendido"
                                 maxlength="8"
-                                value="{{ $informe->dni_atendido ?? '' }}"
+                                value="{{ old('dni_atendido') ?? ($informe->dni_atendido ?? '') }}"
                                 placeholder="00000000"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
+                            @error('dni_atendido')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <!-- OFICINA -->
                         <div>
                             <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 Oficina
                             </label>
+
                             <select
                                 id="oficina"
                                 name="oficina_id"
@@ -97,29 +103,29 @@
                                 <option value="">Seleccione una oficina</option>
 
                                 @foreach($oficinas as $oficina)
-                                    <option
-                                        value="{{ $oficina->id }}"
-                                        data-nombre="{{ $oficina->nombre }}">
+                                    <option value="{{ $oficina->id }}">
                                         {{ $oficina->nombre }}
                                     </option>
                                 @endforeach
 
                             </select>
+                            @error('oficina_id')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
+                                
 
-                        <!-- NUEVA OFICINA -->
                         <div id="otra_oficina_box" class="hidden">
                             <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 Nueva Oficina
                             </label>
+
                             <input
                                 type="text"
+                                id="otra_oficina"
                                 name="otra_oficina"
                                 placeholder="Escriba la nueva oficina"
-                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
-                                       px-4 py-3 text-sm
-                                       focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                       outline-none transition duration-200">
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm px-4 py-3 text-sm">
                         </div>
 
                     </div>
@@ -151,12 +157,15 @@
 
                                     @foreach($sedes as $sede)
                                         <option value="{{ $sede->id }}"
-                                            {{ (isset($informe) && $informe->sede_id == $sede->id) ? 'selected' : '' }}>
+                                            {{ old('sede_id', $informe->sede_id ?? '') == $sede->id ? 'selected' : '' }}>
                                             {{ $sede->nombre }}
                                         </option>
                                     @endforeach
 
                                 </select>
+                                @error('sede_id')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                         </div>
 
                         <!-- PERSONA ATENDIDA -->
@@ -180,6 +189,10 @@
                                     Otros
                                 </option>
                             </select>
+
+                            @error('persona_atendida')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                     </div>
@@ -203,52 +216,61 @@
                             <input
                                 type="text"
                                 name="codigo_patrimonial"
-                                value="{{ $informe->codigo_patrimonial ?? '' }}"
+                                value="{{ old('codigo_patrimonial') ?? ($informe->codigo_patrimonial ?? '') }}"
                                 placeholder="Ingrese el código"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
+                                @error('codigo_patrimonial')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                         </div>
 
                         <div>
-                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                                Tipo de Equipo
-                            </label>
+    <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        Tipo de Equipo
+    </label>
 
-                            <div class="flex gap-3 items-end">
+    <div class="flex gap-3 items-center">
 
-                                <select
-                                    id="tipo_equipo_id"
-                                    name="tipo_equipo_id"
-                                    class="rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
-                                        px-4 py-3 text-sm flex-1 min-w-0
-                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                        outline-none transition-all duration-300">
-                                    @foreach($tiposEquipos as $equipo)
-                                        <option value="{{ $equipo->id }}"
-                                            {{ (isset($informe) && $informe->tipo_equipo_id == $equipo->id) ? 'selected' : '' }}>
-                                            {{ $equipo->nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
+        <!-- SELECT -->
+        <select
+            id="tipo_equipo_id"
+            name="tipo_equipo_id"
+            class="rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                px-4 py-3 text-sm flex-1 min-w-0
+                focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
+                outline-none transition-all duration-300">
 
-                                <div id="otro_equipo_box"
-                                    class="flex-1 min-w-0 overflow-hidden transition-all duration-300"
-                                    style="max-width: 0; opacity: 0;">
-                                    <input
-                                        type="text"
-                                        name="otro_equipo"
-                                        id="otro_equipo_input"
-                                        placeholder="Especifique el equipo"
-                                        class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
-                                            px-4 py-3 text-sm flex-1 min-w-0
-                                            focus:ring-2 focus:ring-indigo-400 
-                                            outline-none transition duration-300">
-                                </div>
+            @foreach($tiposEquipos as $equipo)
+                <option value="{{ $equipo->id }}">
+                    {{ $equipo->nombre }}
+                </option>
+            @endforeach
 
-                            </div>
-                        </div>
+        </select>
+
+        @error('tipo_equipo_id')
+            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+        @enderror
+
+        <!-- INPUT OCULTO -->
+        <div id="otro_equipo_box" class="hidden flex-1 min-w-0">
+
+            <input
+                type="text"
+                id="otro_equipo_input"
+                name="otro_equipo"
+                placeholder="Especifique el equipo"
+                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                    px-4 py-3 text-sm
+                    focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none">
+
+        </div>
+
+    </div>
+</div>
 
                         <!-- MARCA -->
                         <div>
@@ -258,12 +280,16 @@
                             <input
                                 type="text"
                                 name="marca"
-                                value="{{ $informe->marca ?? '' }}"
+                                value="{{ old('marca') ?? ($informe->marca ?? '') }}"
                                 placeholder="Ej: HP, Dell, Lenovo"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
+                            @error('marca')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+
                         </div>
 
                         <!-- MODELO -->
@@ -274,12 +300,15 @@
                             <input
                                 type="text"
                                 name="modelo"
-                                value="{{ $informe->modelo ?? '' }}"
+                                value="{{ old('modelo') ?? ($informe->modelo ?? '') }}"
                                 placeholder="Ingrese el modelo"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
                                        outline-none transition duration-200">
+                                @error('modelo')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                         </div>
 
                         <!-- SERIE -->
@@ -290,7 +319,7 @@
                             <input
                                 type="text"
                                 name="serie"
-                                value="{{ $informe->serie ?? '' }}"
+                                value="{{ old('serie') ?? ($informe->serie ?? '') }}"
                                 placeholder="Número de serie"
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
@@ -300,46 +329,59 @@
 
                         <div class="flex items-end gap-4">
 
-    <!-- DATOS PARA SU RESOLUCIÓN -->
-    <div class="flex-1">
-        <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-            Datos para su Resolución
-        </label>
-        <div class="flex flex-wrap gap-3 p-4 rounded-xl border border-indigo-300 bg-slate-50 shadow-sm">
-            @foreach($tiposIncidencias as $incidencia)
-                <label class="flex items-center gap-2 cursor-pointer group">
-                    <input
-                        type="checkbox"
-                        name="tipo_incidencia_id[]"
-                        value="{{ $incidencia->id }}"
-                        class="w-4 h-4 rounded border-indigo-300 text-indigo-600
-                               focus:ring-2 focus:ring-indigo-400 cursor-pointer">
-                    <span class="text-sm text-slate-600 group-hover:text-indigo-600 transition duration-200">
-                        {{ $incidencia->nombre }}
-                    </span>
-                </label>
-            @endforeach
-        </div>
-    </div>
+    
+                        <!-- DATOS PARA SU RESOLUCIÓN -->
+                        <div class="flex-1">
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Datos para su Resolución
+                            </label>
+                            <div class="flex flex-wrap gap-3 p-4 rounded-xl border border-indigo-300 bg-slate-50 shadow-sm">
+                                @foreach($tiposIncidencias as $incidencia)
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            name="tipo_incidencia_id[]"
+                                            value="{{ $incidencia->id }}"
 
-    <!-- CANTIDAD -->
-    <div class="w-28">
-        <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-            Cantidad
-        </label>
-        <input
-            type="number"
-            name="numero_equipos"
-            value="{{ $informe->numero_equipos ?? '1' }}"
-            min="1"
-            placeholder="1"
-            class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
-                   px-4 py-3 text-sm text-center
-                   focus:ring-2 focus:ring-indigo-400 focus:bg-white
-                   outline-none transition duration-200">
-    </div>
+                                            {{ in_array(
+                                                $incidencia->id,
+                                                old(
+                                                    'tipo_incidencia_id',
+                                                    isset($informe)
+                                                        ? $informe->tiposIncidencias->pluck('id')->toArray()
+                                                        : []
+                                                )
+                                            ) ? 'checked' : '' }}
 
-</div>
+                                            class="w-4 h-4 rounded border-indigo-300 text-indigo-600
+                                                focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+
+                                        <span class="text-sm text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                                            {{ $incidencia->nombre }}
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- CANTIDAD -->
+                        <div class="w-28">
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Cantidad
+                            </label>
+                            <input
+                                type="number"
+                                name="numero_equipos"
+                                value="{{ old('numero_equipos') ?? ($informe->numero_equipos ?? '1') }}"
+                                min="1"
+                                placeholder="1"
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                    px-4 py-3 text-sm text-center
+                                    focus:ring-2 focus:ring-indigo-400 focus:bg-white
+                                    outline-none transition duration-200">
+                        </div>
+
+                        </div>
 
                     </div>
 
@@ -368,65 +410,67 @@
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                       outline-none transition duration-200 resize-none">{{ $informe->descripcion_problema ?? '' }}</textarea>
+                                       outline-none transition duration-200 resize-none">{{ old('descripcion_problema') ?? ($informe->descripcion_problema ?? '') }}</textarea>
                         </div>
 
 
                         <div>
-    <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-        ¿El problema se pudo solucionar?
-    </label>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                ¿El problema se pudo solucionar?
+                            </label>
 
-    <div class="flex gap-3">
+                            <div class="flex gap-3">
 
-        <label class="flex items-center gap-2 cursor-pointer group">
-            <input
-                type="radio"
-                name="problema_solucionado"
-                value="si"
-                {{ (isset($informe) && $informe->problema_solucionado == 'si') ? 'checked' : '' }}
-                class="w-4 h-4 text-indigo-600 border-indigo-300
-                       focus:ring-2 focus:ring-indigo-400 cursor-pointer">
-            <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
-                Sí
-            </span>
-        </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="problema_solucionado"
+                                        value="si"
+                                        {{ (isset($informe) && $informe->problema_solucionado == 'si') ? 'checked' : '' }}
+                                        {{ (old('problema_solucionado') == 'si') ? 'checked' : '' }}
+                                        class="w-4 h-4 text-indigo-600 border-indigo-300
+                                            focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                                    <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                                        Sí
+                                    </span>
+                                </label>
 
-        <label class="flex items-center gap-2 cursor-pointer group">
-            <input
-                type="radio"
-                name="problema_solucionado"
-                value="no"
-                {{ (isset($informe) && $informe->problema_solucionado == 'no') ? 'checked' : '' }}
-                class="w-4 h-4 text-indigo-600 border-indigo-300
-                       focus:ring-2 focus:ring-indigo-400 cursor-pointer">
-            <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
-                No
-            </span>
-        </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="problema_solucionado"
+                                        value="no"
+                                        {{ (isset($informe) && $informe->problema_solucionado == 'no') ? 'checked' : '' }}
+                                        {{ (old('problema_solucionado') == 'no') ? 'checked' : '' }}
+                                        class="w-4 h-4 text-indigo-600 border-indigo-300
+                                            focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                                    <span class="text-sm font-medium text-slate-600 group-hover:text-indigo-600 transition duration-200">
+                                        No
+                                    </span>
+                                </label>
 
-    </div>
+                            </div>
 
-</div>
+                        </div>
 
-<!-- RESOLUCIÓN TÉCNICA: solo aparece si se marca NO -->
-<div id="resolucion_box"
-     class="{{ (isset($informe) && $informe->problema_solucionado == 'no') ? '' : 'hidden' }}
-            transition-all duration-300">
+                        <!-- RESOLUCIÓN TÉCNICA: solo aparece si se marca NO -->
+                        <div id="resolucion_box"
+                            class="{{ (isset($informe) && $informe->problema_solucionado == 'no') ? '' : 'hidden' }}
+                                    transition-all duration-300">
 
-    <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-        Resolución Técnica
-    </label>
-    <textarea
-        name="resolucion_tecnica"
-        rows="4"
-        placeholder="Indicar por qué no se pudo solucionar y si se debe a causas ajenas a la OTI..."
-        class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
-               px-4 py-3 text-sm
-               focus:ring-2 focus:ring-indigo-400 focus:bg-white
-               outline-none transition duration-200 resize-none">{{ $informe->resolucion_tecnica ?? '' }}</textarea>
+                            <label class="block mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                Resolución Técnica
+                            </label>
+                            <textarea
+                                name="resolucion_tecnica"
+                                rows="4"
+                                placeholder="Indicar por qué no se pudo solucionar y si se debe a causas ajenas a la OTI..."
+                                class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
+                                    px-4 py-3 text-sm
+                                    focus:ring-2 focus:ring-indigo-400 focus:bg-white
+                                    outline-none transition duration-200 resize-none">{{ old('resolucion_tecnica') ?? ($informe->resolucion_tecnica ?? '') }}</textarea>
 
-</div>
+                        </div>
 
                         <!-- OBSERVACIONES -->
                         <div>
@@ -440,7 +484,7 @@
                                 class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                        px-4 py-3 text-sm
                                        focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white
-                                       outline-none transition duration-200 resize-none">{{ $informe->observaciones ?? '' }}</textarea>
+                                       outline-none transition duration-200 resize-none">{{ old('observaciones') ?? ($informe->observaciones ?? '') }}</textarea>
                         </div>
 
                     </div>
@@ -479,64 +523,37 @@
 </div>
 
 
-<script>
-const oficinaSelect = document.getElementById('oficina');
-const otraBox = document.getElementById('otra_oficina_box');
-
-oficinaSelect.addEventListener('change', function () {
-
-    const nombre =
-        this.options[this.selectedIndex]
-            .dataset.nombre;
-
-    if (nombre === 'Otros') {
-        otraBox.classList.remove('hidden');
-    } else {
-        otraBox.classList.add('hidden');
-    }
-});
-</script>
+<script src="{{ asset('js/formulario.js') }}"></script>
 
 <script>
-const tipoEquipoSelect = document.getElementById('tipo_equipo_id');
-const otroEquipoBox    = document.getElementById('otro_equipo_box');
-const otroEquipoInput  = document.getElementById('otro_equipo_input');
 
-tipoEquipoSelect.addEventListener('change', function () {
-    const texto = this.options[this.selectedIndex].text.toLowerCase();
+document.addEventListener('DOMContentLoaded', function () {
 
-    if (texto === 'otros' || texto === 'otro') {
-        // Select se achica
-        tipoEquipoSelect.style.flex = '0 0 160px';
-        // Input aparece con animación
-        otroEquipoBox.style.maxWidth = '400px';
-        otroEquipoBox.style.opacity  = '1';
-        otroEquipoInput.focus();
-    } else {
-        tipoEquipoSelect.style.flex  = '1';
-        otroEquipoBox.style.maxWidth = '0';
-        otroEquipoBox.style.opacity  = '0';
-        otroEquipoInput.value        = '';
-    }
-});
-
-
-const radios = document.querySelectorAll('input[name="problema_solucionado"]');
-const resolucionBox = document.getElementById('resolucion_box');
-
-radios.forEach(radio => {
-    radio.addEventListener('change', function () {
-        if (this.value === 'no') {
-            resolucionBox.classList.remove('hidden');
-        } else {
-            resolucionBox.classList.add('hidden');
-            resolucionBox.querySelector('textarea').value = '';
-        }
+    mostrarSiSelectExpandible({
+        selectId: 'oficina',
+        boxId: 'otra_oficina_box',
+        inputId: 'otra_oficina',
+        valor: {{ $oficinaOtrosId }}
     });
+
+    // RADIO
+    mostrarSiRadio({
+        radioName: 'problema_solucionado',
+        valor: 'no',
+        boxId: 'resolucion_box'
+    });
+
+    // TIPO DE EQUIPO
+    mostrarSiSelectExpandible({
+        selectId: 'tipo_equipo_id',
+        boxId: 'otro_equipo_box',
+        inputId: 'otro_equipo_input',
+        valor: {{ $tipoEquipoOtrosId }}
+    });
+
 });
 
 </script>
-
 
 
 

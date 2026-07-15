@@ -49,90 +49,155 @@ class InformeController extends Controller
     return $pdf->download($informe->codigo_informe . '.pdf');
     }
 
-    public function create()
-    {
-        $oficinas = Oficina::all();
-        $sedes = Sede::all();
-        $tiposEquipos = TipoEquipo::all();
-        $tiposIncidencias = TipoIncidencia::all();
+public function create()
+{
+    $oficinas = Oficina::all();
+    $sedes = Sede::all();
+    $tiposEquipos = TipoEquipo::all();
+    $tiposIncidencias = TipoIncidencia::all();
 
-        return view('admin.informes.create', compact(
-            'oficinas',
-            'sedes',
-            'tiposEquipos',
-            'tiposIncidencias'
-        ));
-    }   
+    $oficinaOtrosId = Oficina::where('nombre', 'Otros')->value('id');
+    $tipoEquipoOtrosId = TipoEquipo::where('nombre', 'Otros')->value('id');
+
+    return view('admin.informes.create', compact(
+        'oficinas',
+        'sedes',
+        'tiposEquipos',
+        'tiposIncidencias',
+        'oficinaOtrosId',
+        'tipoEquipoOtrosId'
+    ));
+}  
 
 
     //  STORE
-    public function store(Request $request)
-    {
-        return DB::transaction(function () use ($request) {
+public function store(Request $request)
+{
+    $oficinaOtrosId = Oficina::where('nombre', 'Otros')->value('id');
+    $tipoEquipoOtrosId = TipoEquipo::where('nombre', 'Otros')->value('id');
 
-            $ultimo = Informe::whereNotNull('codigo_informe')
-                ->lockForUpdate()
-                ->orderByDesc('id')
-                ->first();
+    $request->validate([
 
-            $numero = 1000;
+        'nombre_atendido' => 'required|string|max:255',
+        'dni_atendido' => 'required|digits:8',
 
-            if ($ultimo && $ultimo->codigo_informe) {
-                $numero = (int) str_replace('INF-', '', $ultimo->codigo_informe);
-            }
+        'sede_id' => 'required',
 
-            $numero++;
+        'oficina_id' => 'required',
 
-            $codigo = 'INF-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
+        'otra_oficina' => $request->oficina_id == $oficinaOtrosId
+            ? 'required|string|max:255'
+            : 'nullable|string|max:255',
 
-            $informe = Informe::create([
+        'persona_atendida' => 'required|string|max:255',
 
-                'codigo_informe' => $codigo,
-                'fecha' => now()->toDateString(),
-                'hora_inicio' => now()->format('H:i:s'),
+        'tipo_equipo_id' => 'required',
 
-                'user_id' => auth()->id(),
+        'otro_equipo' => $request->tipo_equipo_id == $tipoEquipoOtrosId
+            ? 'required|string|max:255'
+            : 'nullable|string|max:255',
 
-                'nombre_atendido' => $request->nombre_atendido,
-                'dni_atendido' => $request->dni_atendido,
+        'codigo_patrimonial' => 'required|string|max:255',
 
-                'sede_id' => $request->sede_id,
+        'marca' => 'required|string|max:255',
 
-                'oficina_id' => $request->oficina_id,
-                'otra_oficina' => $request->otra_oficina,
+        'modelo' => 'required|string|max:255',
 
-                'persona_atendida' => $request->persona_atendida,
+        'descripcion_problema' => 'required|string',
 
-                'codigo_patrimonial' => $request->codigo_patrimonial,
+        'observaciones' => 'required|string',
 
-                'tipo_equipo_id' => $request->tipo_equipo_id,
+    ], [
 
-                'marca' => $request->marca,
-                'modelo' => $request->modelo,
-                'serie' => $request->serie,
+        'nombre_atendido.required' => 'Debe ingresar el nombre del atendido.',
+        'dni_atendido.required' => 'Debe ingresar el DNI.',
+        'dni_atendido.digits' => 'El DNI debe tener 8 dígitos.',
 
-                'numero_equipos' => $request->numero_equipos,
+        'sede_id.required' => 'Debe seleccionar una sede.',
 
-                'descripcion_problema' => $request->descripcion_problema,
+        'oficina_id.required' => 'Debe seleccionar una oficina.',
+        'otra_oficina.required' => 'Debe escribir el nombre de la nueva oficina.',
 
-                'resolucion_tecnica' => $request->resolucion_tecnica,
+        'persona_atendida.required' => 'Debe indicar la persona atendida.',
 
-                'observaciones' => $request->observaciones,
+        'tipo_equipo_id.required' => 'Debe seleccionar un tipo de equipo.',
+        'otro_equipo.required' => 'Debe especificar el tipo de equipo.',
 
-                'solucionado' => true,
-                'brindaron_facilidad' => false,
-            ]);
+        'codigo_patrimonial.required' => 'Debe ingresar el código patrimonial del equipo.',
 
-            $informe->tiposIncidencias()
-                ->attach($request->tipo_incidencia_id);
+        'marca.required' => 'Debe ingresar la marca del equipo.',
+        'modelo.required' => 'Debe ingresar el modelo del equipo.',
 
-            return redirect(
-                auth()->user()->rol == 'admin'
-                    ? '/admin/informes'
-                    : '/usuario/informes'
-            )->with('success', 'Informe registrado correctamente');
-        });
-    }
+        'descripcion_problema.required' => 'Debe ingresar la descripción del problema.',
+
+        'observaciones.required' => 'Debe ingresar las observaciones.',
+    ]);
+
+    return DB::transaction(function () use ($request) {
+
+        $ultimo = Informe::whereNotNull('codigo_informe')
+            ->lockForUpdate()
+            ->orderByDesc('id')
+            ->first();
+
+        $numero = 1000;
+
+        if ($ultimo && $ultimo->codigo_informe) {
+            $numero = (int) str_replace('INF-', '', $ultimo->codigo_informe);
+        }
+
+        $numero++;
+
+        $codigo = 'INF-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
+
+        $informe = Informe::create([
+
+            'codigo_informe' => $codigo,
+            'fecha' => now()->toDateString(),
+            'hora_inicio' => now()->format('H:i:s'),
+
+            'user_id' => auth()->id(),
+
+            'nombre_atendido' => $request->nombre_atendido,
+            'dni_atendido' => $request->dni_atendido,
+
+            'sede_id' => $request->sede_id,
+
+            'oficina_id' => $request->oficina_id,
+            'otra_oficina' => $request->otra_oficina,
+
+            'persona_atendida' => $request->persona_atendida,
+
+            'codigo_patrimonial' => $request->codigo_patrimonial,
+
+            'tipo_equipo_id' => $request->tipo_equipo_id,
+            'otro_equipo' => $request->otro_equipo,
+
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+            'serie' => $request->serie,
+
+            'numero_equipos' => $request->numero_equipos,
+
+            'descripcion_problema' => $request->descripcion_problema,
+
+            'resolucion_tecnica' => $request->resolucion_tecnica,
+
+            'observaciones' => $request->observaciones,
+
+            'solucionado' => true,
+            'brindaron_facilidad' => true,
+        ]);
+
+        $informe->tiposIncidencias()->attach($request->tipo_incidencia_id);
+
+        return redirect(
+            auth()->user()->rol == 'admin'
+                ? '/admin/informes'
+                : '/usuario/informes'
+        )->with('success', 'Informe registrado correctamente');
+    });
+}
     
     // MIS INFORMES USUARIO
     public function misInformes()
@@ -197,6 +262,8 @@ class InformeController extends Controller
                 compact('informes')
             );
         }
+    
+    
     // UPDATE
     public function update(Request $request, Informe $informe)
     {

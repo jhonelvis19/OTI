@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+
     public function up(): void
     {
         Schema::create('informes', function (Blueprint $table) {
@@ -55,7 +53,7 @@ return new class extends Migration
 
             // FACILIDADES
             $table->boolean('brindaron_facilidad')
-                ->default(false);
+                ->default(true);
 
             // DATOS DEL EQUIPO
             $table->string('codigo_patrimonial');
@@ -63,12 +61,16 @@ return new class extends Migration
             $table->foreignId('tipo_equipo_id')
                 ->constrained('tipos_equipos')
                 ->onDelete('cascade');
+                
+            $table->string('otro_equipo')->nullable();
+
 
             $table->string('marca');
 
             $table->string('modelo');
 
-            $table->string('serie');
+            $table->string('serie')
+                ->nullable();
 
             // CANTIDAD DE EQUIPOS
             $table->integer('numero_equipos')
@@ -78,7 +80,8 @@ return new class extends Migration
             $table->text('descripcion_problema');
 
             // RESOLUCIÓN TÉCNICA
-            $table->text('resolucion_tecnica');
+            $table->text('resolucion_tecnica') 
+                ->nullable();
 
             // RESULTADO
             $table->boolean('solucionado')
@@ -95,9 +98,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('informes');

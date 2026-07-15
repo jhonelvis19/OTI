@@ -34,6 +34,7 @@ class Informe extends Model
         'codigo_patrimonial',
 
         'tipo_equipo_id',
+        'otro_equipo',
 
         'marca',
         'modelo',
