@@ -50,7 +50,24 @@ class Informe extends Model
 
         'motivo_no_solucion',
 
-        'observaciones'
+        'observaciones',
+
+        // CAMPOS DE FIRMAS
+        'firma_persona',
+        'firma_tecnico',
+        'firma_persona_fecha',
+        'firma_tecnico_fecha',
+        'firma_persona_metodo',
+        'firma_tecnico_metodo',
+        'firmas_bloqueadas',
+    ];
+
+    protected $casts = [
+        'firmas_bloqueadas' => 'boolean',
+        'firma_persona_fecha' => 'datetime',
+        'firma_tecnico_fecha' => 'datetime',
+        'solucionado' => 'boolean',
+        'brindaron_facilidad' => 'boolean',
     ];
 
     // USUARIO

@@ -29,7 +29,7 @@
         <!-- FORMULARIO -->
         <div class="p-8">
 
-            <form method="POST"
+            <form id="informe-form" method="POST"
                 action="{{ isset($informe)
                     ? (auth()->user()->rol == 'admin'
                         ? '/admin/informes/'.$informe->id
@@ -45,8 +45,14 @@
 
                 <input type="hidden" name="redirect_to" value="{{ old('redirect_to', url()->previous()) }}">
 
+                @if(!isset($informe))
+                    <input type="hidden" name="firma_persona_data" id="firma_persona_data">
+                    <input type="hidden" name="firma_persona_metodo" id="firma_persona_metodo">
+                    <input type="hidden" name="firma_tecnico_data" id="firma_tecnico_data">
+                    <input type="hidden" name="firma_tecnico_metodo" id="firma_tecnico_metodo">
+                @endif
 
-
+                <div id="form-fields-container">
                 <div class="relative border border-indigo-300 rounded-2xl p-6 mb-8">
 
                     <div class="absolute -top-3.5 left-5 bg-white px-3">
@@ -64,6 +70,7 @@
                             </label>
                             <input
                                 type="text"
+                                id="nombre_atendido"
                                 name="nombre_atendido"
                                 value="{{ old('nombre_atendido', $informe->nombre_atendido ?? '') }}"
                                 placeholder="Ingrese nombre completo"
@@ -83,6 +90,7 @@
                             </label>
                             <input
                                 type="text"
+                                id="dni_atendido"
                                 name="dni_atendido"
                                 maxlength="8"
                                 value="{{ old('dni_atendido', $informe->dni_atendido ?? '') }}"
@@ -164,6 +172,7 @@
                                 Cede
                             </label>
                                 <select
+                                    id="sede_id"
                                     name="sede_id"
                                     class="w-full rounded-xl border border-indigo-300 bg-slate-50 shadow-sm
                                         px-4 py-3 text-sm
@@ -230,6 +239,7 @@
                             </label>
                             <input
                                 type="text"
+                                id="codigo_patrimonial"
                                 name="codigo_patrimonial"
                                 value="{{ old('codigo_patrimonial', $informe->codigo_patrimonial ?? '') }}"
                                 placeholder="Ingrese el código"
@@ -299,6 +309,7 @@
                             </label>
                             <input
                                 type="text"
+                                id="marca"
                                 name="marca"
                                 value="{{ old('marca', $informe->marca ?? '') }}"
                                 placeholder="Ej: HP, Dell, Lenovo"
@@ -319,6 +330,7 @@
                             </label>
                             <input
                                 type="text"
+                                id="modelo"
                                 name="modelo"
                                 value="{{ old('modelo', $informe->modelo ?? '') }}"
                                 placeholder="Ingrese el modelo"
@@ -424,6 +436,7 @@
                                 Descripción del Problema
                             </label>
                             <textarea
+                                id="descripcion_problema"
                                 name="descripcion_problema"
                                 rows="4"
                                 placeholder="Descripcion detallada del Mantenimiento..."
@@ -447,6 +460,7 @@
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input
                                         type="radio"
+                                        id="solucionado_si"
                                         name="problema_solucionado"
                                         value="si"
                                         {{ old('problema_solucionado', isset($informe) ? ($informe->solucionado ? 'si' : 'no') : 'si') == 'si' ? 'checked' : '' }}
@@ -460,6 +474,7 @@
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input
                                         type="radio"
+                                        id="solucionado_no"
                                         name="problema_solucionado"
                                         value="no"
                                         {{ old('problema_solucionado', isset($informe) ? ($informe->solucionado ? 'si' : 'no') : '') == 'no' ? 'checked' : '' }}
@@ -518,11 +533,140 @@
 
                 </div>
 
+                </div> <!-- /form-fields-container -->
 
-                <!-- BOTÓN SUBMIT -->
+                @if(!isset($informe))
+                <!-- SECCIÓN DE FIRMAS (PASO MULTI-ETAPAS) -->
+                <div id="seccion-firmas" class="hidden relative border border-indigo-300 rounded-2xl p-6 mb-8 bg-slate-50">
+                    <div class="flex justify-between items-center mb-6 border-b border-indigo-200 pb-3">
+                        <h3 id="firma-header-title" class="text-lg font-bold text-slate-800">Firmas del Acta</h3>
+                        <span id="firma-header-step" class="text-xs font-semibold uppercase bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full">Paso 1 de 2</span>
+                    </div>
+
+                    <!-- PASO 1: FIRMA PERSONA ATENDIDA -->
+                    <div id="paso-firma-persona" class="space-y-6">
+                        <p class="text-sm text-slate-600">Por favor, la persona atendida debe firmar a continuación para dar conformidad al mantenimiento realizado:</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button type="button" id="btn-persona-dibujar" class="flex-1 py-3 px-4 rounded-xl border border-indigo-300 bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition duration-200 text-sm">
+                                ✍ Dibujar en Pantalla
+                            </button>
+                            <button type="button" id="btn-persona-foto" class="flex-1 py-3 px-4 rounded-xl border border-indigo-300 bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition duration-200 text-sm">
+                                📷 Tomar Fotografía
+                            </button>
+                        </div>
+
+                        <div id="contenedor-persona-canvas" class="hidden">
+                            <div class="border border-indigo-200 rounded-2xl bg-white p-2 relative h-64 shadow-inner">
+                                <canvas id="canvas-persona" class="w-full h-full cursor-crosshair block rounded-xl bg-slate-50"></canvas>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Use su dedo, mouse o lápiz digital en la zona de firma.</p>
+                        </div>
+
+                        <div id="contenedor-persona-foto" class="hidden">
+                            <label class="flex flex-col items-center justify-center border-2 border-dashed border-indigo-300 rounded-2xl bg-white p-6 cursor-pointer hover:bg-indigo-50 transition duration-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span class="text-sm font-medium text-slate-700">Tomar Foto con la Cámara</span>
+                                <input type="file" id="input-persona-foto" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden">
+                            </label>
+                        </div>
+
+                        <div id="preview-persona-container" class="hidden border border-gray-200 rounded-2xl bg-white p-4">
+                            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vista Previa de la Firma:</h4>
+                            <div class="flex justify-center bg-slate-50 p-2 rounded-xl">
+                                <img id="preview-persona" src="#" alt="Firma Persona" class="max-h-32 object-contain">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" id="btn-limpiar-persona" class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition duration-200">
+                                Limpiar / Repetir
+                            </button>
+                            <button type="button" id="btn-confirmar-persona" disabled class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition duration-200 opacity-50 cursor-not-allowed">
+                                Confirmar Firma
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PASO 2: FIRMA TÉCNICO -->
+                    <div id="paso-firma-tecnico" class="hidden space-y-6">
+                        <p class="text-sm text-slate-600">Por favor, el técnico responsable del mantenimiento debe firmar a continuación:</p>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            @if(auth()->user()->firma)
+                            <button type="button" id="btn-tecnico-perfil" class="flex-1 py-3 px-4 rounded-xl border border-indigo-300 bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition duration-200 text-sm">
+                                💼 Usar mi firma guardada
+                            </button>
+                            @endif
+                            <button type="button" id="btn-tecnico-dibujar" class="flex-1 py-3 px-4 rounded-xl border border-indigo-300 bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition duration-200 text-sm">
+                                ✍ Dibujar en Pantalla
+                            </button>
+                            <button type="button" id="btn-tecnico-foto" class="flex-1 py-3 px-4 rounded-xl border border-indigo-300 bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition duration-200 text-sm">
+                                📷 Tomar Fotografía
+                            </button>
+                        </div>
+
+                        @if(auth()->user()->firma)
+                        <div id="contenedor-tecnico-perfil" class="hidden border border-gray-200 rounded-2xl bg-white p-4">
+                            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Su firma guardada:</h4>
+                            <div class="flex justify-center bg-slate-50 p-2 rounded-xl">
+                                <img src="{{ asset('storage/' . auth()->user()->firma) }}" alt="Firma Guardada" class="max-h-32 object-contain">
+                            </div>
+                        </div>
+                        @endif
+
+                        <div id="contenedor-tecnico-canvas" class="hidden">
+                            <div class="border border-indigo-200 rounded-2xl bg-white p-2 relative h-64 shadow-inner">
+                                <canvas id="canvas-tecnico" class="w-full h-full cursor-crosshair block rounded-xl bg-slate-50"></canvas>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Use su dedo, mouse o lápiz digital en la zona de firma.</p>
+                        </div>
+
+                        <div id="contenedor-tecnico-foto" class="hidden">
+                            <label class="flex flex-col items-center justify-center border-2 border-dashed border-indigo-300 rounded-2xl bg-white p-6 cursor-pointer hover:bg-indigo-50 transition duration-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span class="text-sm font-medium text-slate-700">Tomar Foto con la Cámara</span>
+                                <input type="file" id="input-tecnico-foto" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden">
+                            </label>
+                        </div>
+
+                        <div id="preview-tecnico-container" class="hidden border border-gray-200 rounded-2xl bg-white p-4">
+                            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Vista Previa de la Firma:</h4>
+                            <div class="flex justify-center bg-slate-50 p-2 rounded-xl">
+                                <img id="preview-tecnico" src="#" alt="Firma Técnico" class="max-h-32 object-contain">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" id="btn-limpiar-tecnico" class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition duration-200">
+                                Limpiar / Repetir
+                            </button>
+                            <button type="button" id="btn-confirmar-tecnico" disabled class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition duration-200 opacity-50 cursor-not-allowed">
+                                Confirmar Firma
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-indigo-200 flex justify-start">
+                        <button type="button" id="btn-volver-formulario" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Volver a modificar el formulario
+                        </button>
+                    </div>
+                </div>
+                @endif
+
+                <!-- BOTÓN SUBMIT / FIRMAS -->
                 @php
                     $cancelUrl = old('redirect_to', url()->previous());
-                    // Prevenir bucles infinitos o redirecciones a la misma página de edit/create
                     if (!$cancelUrl || $cancelUrl == url()->current() || !str_contains($cancelUrl, auth()->user()->rol)) {
                         $cancelUrl = auth()->user()->rol == 'admin' ? '/admin/informes' : '/usuario/informes';
                     }
@@ -531,20 +675,46 @@
 
                     <a href="{{ $cancelUrl }}"
                        class="px-5 py-2.5 rounded-xl border border-gray-200 text-slate-600 text-sm font-medium
-                              hover:bg-slate-50 transition duration-200 mr-3">
+                               hover:bg-slate-50 transition duration-200 mr-3">
                         Cancelar
                     </a>
 
-                    <button
-                        type="submit"
-                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
-                               text-white px-7 py-2.5 rounded-xl text-sm font-medium
-                               transition duration-200 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {{ isset($informe) ? 'Actualizar Informe' : 'Guardar Informe' }}
-                    </button>
+                    @if(!isset($informe))
+                        <!-- Botón para iniciar firmas -->
+                        <button
+                            type="button"
+                            id="btn-ingresar-firmas"
+                            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
+                                   text-white px-7 py-2.5 rounded-xl text-sm font-medium
+                                   transition duration-200 shadow-sm">
+                            ✍ Ingresar firmas
+                        </button>
+
+                        <!-- Botón real para enviar (oculto / deshabilitado al inicio) -->
+                        <button
+                            type="submit"
+                            id="btn-guardar-informe"
+                            disabled
+                            class="hidden inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700
+                                   text-white px-7 py-2.5 rounded-xl text-sm font-medium
+                                   transition duration-200 shadow-sm opacity-50 cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Guardar Informe
+                        </button>
+                    @else
+                        <button
+                            type="submit"
+                            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700
+                                   text-white px-7 py-2.5 rounded-xl text-sm font-medium
+                                   transition duration-200 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Actualizar Informe
+                        </button>
+                    @endif
 
                 </div>
 
@@ -558,6 +728,10 @@
 
 
 <script src="{{ asset('js/formulario.js') }}"></script>
+@if(!isset($informe))
+    <script src="{{ asset('js/signature_pad.js') }}"></script>
+    <script src="{{ asset('js/firma.js') }}"></script>
+@endif
 
 <script>
 

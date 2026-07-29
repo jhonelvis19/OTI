@@ -67,7 +67,7 @@ public function create()
         'oficinaOtrosId',
         'tipoEquipoOtrosId'
     ));
-}  
+}
 
 
     //  STORE
@@ -110,6 +110,12 @@ public function store(Request $request)
 
         'observaciones' => 'required|string',
 
+        // VALIDACIÓN DE FIRMAS
+        'firma_persona_data' => 'required|string',
+        'firma_persona_metodo' => 'required|in:dibujada,foto',
+        'firma_tecnico_data' => 'required|string',
+        'firma_tecnico_metodo' => 'required|in:dibujada,foto,perfil',
+
     ], [
 
         'nombre_atendido.required' => 'Debe ingresar el nombre del atendido.',
@@ -137,6 +143,9 @@ public function store(Request $request)
         'resolucion_tecnica.required_if' => 'Debe ingresar la resolución técnica si el problema no se solucionó.',
 
         'observaciones.required' => 'Debe ingresar las observaciones.',
+
+        'firma_persona_data.required' => 'La firma de la persona atendida es obligatoria.',
+        'firma_tecnico_data.required' => 'La firma del técnico es obligatoria.',
     ]);
 
     return DB::transaction(function () use ($request) {
@@ -197,11 +206,71 @@ public function store(Request $request)
 
         $informe->tiposIncidencias()->attach($request->tipo_incidencia_id);
 
+        // --- PROCESAMIENTO Y GUARDADO DE FIRMAS ---
+        
+        // Carpeta del informe: public/firmas/informes/informe_{id}
+        $folder = 'firmas/informes/informe_' . $informe->id;
+
+        // 1. Firma Persona
+        $extensionPersona = 'png';
+        if ($request->firma_persona_metodo === 'foto' && str_contains($request->firma_persona_data, 'data:image/jpeg')) {
+            $extensionPersona = 'jpg';
+        }
+        
+        $pathPersona = $folder . '/firma_persona.' . $extensionPersona;
+        $dataPersona = $request->firma_persona_data;
+        
+        if (preg_match('/^data:image\/(\w+);base64,/', $dataPersona, $type)) {
+            $dataPersona = substr($dataPersona, strpos($dataPersona, ',') + 1);
+            $dataPersona = str_replace(' ', '+', $dataPersona);
+            $dataPersona = base64_decode($dataPersona);
+            \Illuminate\Support\Facades\Storage::disk('public')->put($pathPersona, $dataPersona);
+        }
+
+        // 2. Firma Técnico
+        $pathTecnico = null;
+        if ($request->firma_tecnico_metodo === 'perfil') {
+            $userFirma = auth()->user()->firma;
+            if ($userFirma && \Illuminate\Support\Facades\Storage::disk('public')->exists($userFirma)) {
+                $ext = pathinfo($userFirma, PATHINFO_EXTENSION);
+                $pathTecnico = $folder . '/firma_tecnico.' . ($ext ?: 'png');
+                \Illuminate\Support\Facades\Storage::disk('public')->copy($userFirma, $pathTecnico);
+            } else {
+                throw new \Exception('No se encontró una firma registrada en su perfil de usuario.');
+            }
+        } else {
+            $extensionTecnico = 'png';
+            if ($request->firma_tecnico_metodo === 'foto' && str_contains($request->firma_tecnico_data, 'data:image/jpeg')) {
+                $extensionTecnico = 'jpg';
+            }
+            
+            $pathTecnico = $folder . '/firma_tecnico.' . $extensionTecnico;
+            $dataTecnico = $request->firma_tecnico_data;
+            
+            if (preg_match('/^data:image\/(\w+);base64,/', $dataTecnico, $type)) {
+                $dataTecnico = substr($dataTecnico, strpos($dataTecnico, ',') + 1);
+                $dataTecnico = str_replace(' ', '+', $dataTecnico);
+                $dataTecnico = base64_decode($dataTecnico);
+                \Illuminate\Support\Facades\Storage::disk('public')->put($pathTecnico, $dataTecnico);
+            }
+        }
+
+        // Guardar rutas y meta de firmas en el informe
+        $informe->update([
+            'firma_persona' => $pathPersona,
+            'firma_tecnico' => $pathTecnico,
+            'firma_persona_fecha' => now(),
+            'firma_tecnico_fecha' => now(),
+            'firma_persona_metodo' => $request->firma_persona_metodo,
+            'firma_tecnico_metodo' => $request->firma_tecnico_metodo,
+            'firmas_bloqueadas' => true,
+        ]);
+
         return redirect(
             auth()->user()->rol == 'admin'
                 ? '/admin/informes'
                 : '/usuario/informes'
-        )->with('success', 'Informe registrado correctamente');
+        )->with('success', 'Informe registrado correctamente con sus firmas.');
     });
 }
     
@@ -241,8 +310,9 @@ public function store(Request $request)
 
         public function edit(Informe $informe)
         {
-            if ($informe->user_id != auth()->id()) {
-                abort(403, 'No tienes permisos');
+            // El usuario normal solo puede editar sus propios informes
+            if (auth()->user()->rol === 'usuario' && $informe->user_id != auth()->id()) {
+                abort(403, 'No tienes permisos para editar este informe.');
             }
 
             $oficinas = Oficina::all();

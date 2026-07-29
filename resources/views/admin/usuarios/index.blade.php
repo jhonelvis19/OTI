@@ -32,6 +32,18 @@
     </div>
 
 
+    {{-- ALERTAS --}}
+    @if (session('success'))
+        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 p-4 rounded-xl shadow-sm flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-medium text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
+
+
+
     <!-- TABLA -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
@@ -206,6 +218,48 @@ function cerrarModalEditar() {
     document.getElementById('modalEditarUsuario').classList.remove('flex');
     document.getElementById('modalEditarUsuario').classList.add('hidden');
 }
+
+@if($errors->any() && !old('id'))
+document.addEventListener('DOMContentLoaded', function() {
+    abrirModal();
+});
+@endif
+
+@if(session('success') && session('success_type') === 'create')
+document.addEventListener('DOMContentLoaded', function() {
+    abrirModal();
+    setTimeout(function() {
+        cerrarModal();
+    }, 2500);
+});
+@endif
+
+@if($errors->any() && old('id'))
+document.addEventListener('DOMContentLoaded', function() {
+    abrirModalEditar(
+        "{{ old('id') }}",
+        "{{ old('name') }}",
+        "{{ old('apellido') }}",
+        "{{ old('email') }}",
+        "{{ old('rol') }}"
+    );
+});
+@endif
+
+@if(session('success') && session('success_type') === 'edit')
+document.addEventListener('DOMContentLoaded', function() {
+    abrirModalEditar(
+        "{{ session('success_id') }}",
+        "{{ session('success_name') }}",
+        "{{ session('success_apellido') }}",
+        "{{ session('success_email') }}",
+        "{{ session('success_rol') }}"
+    );
+    setTimeout(function() {
+        cerrarModalEditar();
+    }, 2500);
+});
+@endif
 
 </script>
 

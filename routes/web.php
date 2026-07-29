@@ -3,6 +3,7 @@ use App\Http\Controllers\InformeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FirmaController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -32,6 +33,9 @@ Route::middleware(['auth'])->group(function () {
             return view('admin.configuracion.index');
         });
 
+        Route::post('/configuracion/firma', [FirmaController::class, 'guardarFirmaPerfil']);
+        Route::delete('/configuracion/firma', [FirmaController::class, 'eliminarFirmaPerfil']);
+
         Route::get('/usuarios', [UsuarioController::class, 'index']);
 
         Route::get('/usuarios/create', [UsuarioController::class, 'create']);
@@ -56,28 +60,32 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['rol:usuario'])->prefix('usuario')->group(function () {
 
-        Route::get('/dashboard', function () {
-            return view('usuario.dashboard');
-        });
-
-        Route::get('/informes/{informe}', [InformeController::class, 'show']);
+        Route::get('/dashboard', [DashboardController::class, 'usuarioIndex']);
 
         Route::get('/informes/create', [InformeController::class, 'create']);
 
+        Route::get('/informes/{informe}', [InformeController::class, 'show']);
+
+        Route::get('/informes/{informe}/pdf', [InformeController::class, 'pdf']);
+
+        Route::get('/informes/{informe}/pdf/download', [InformeController::class, 'downloadPdf']);
+
+        Route::get('/informes/{informe}/edit', [InformeController::class, 'edit']);
+
         Route::get('/informes', [InformeController::class, 'misInformes']);
+
+        Route::post('/informes', [InformeController::class, 'store']);
+
+        Route::put('/informes/{informe}', [InformeController::class, 'update']);
 
         Route::get('/perfil', function () {
             return view('usuario.perfil.index');
         });
 
-        Route::get('/informes/{informe}/pdf', [InformeController::class, 'pdf']);
+        Route::post('/perfil/firma', [FirmaController::class, 'guardarFirmaPerfil']);
+        Route::delete('/perfil/firma', [FirmaController::class, 'eliminarFirmaPerfil']);
 
-        Route::post('/informes', [InformeController::class, 'store']);
-        Route::get('/informes/{informe}/pdf/download', [InformeController::class, 'downloadPdf']);
-        Route::put('/informes/{informe}', [InformeController::class, 'update']);
-
-        Route::get('/informes/{informe}/edit', [InformeController::class, 'edit']);
-        });
+    });
 
 });
 

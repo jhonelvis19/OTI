@@ -164,7 +164,7 @@
                 <div class="space-y-6">
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Descripción del Problema</p>
-                        <div class="text-sm text-slate-800 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed">
+                        <div class="text-sm text-slate-800 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed break-words">
                             {{ $informe->descripcion_problema }}
                         </div>
                     </div>
@@ -193,7 +193,7 @@
                     @if(!$informe->solucionado && $informe->resolucion_tecnica)
                         <div>
                             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Resolución Técnica</p>
-                            <div class="text-sm text-slate-800 bg-red-50/50 border border-red-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed">
+                            <div class="text-sm text-slate-800 bg-red-50/50 border border-red-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed break-words">
                                 {{ $informe->resolucion_tecnica }}
                             </div>
                         </div>
@@ -201,7 +201,7 @@
 
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Comentario y Observaciones</p>
-                        <div class="text-sm text-slate-800 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed">
+                        <div class="text-sm text-slate-800 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 whitespace-pre-line leading-relaxed break-words">
                             {{ $informe->observaciones ?? 'Sin observaciones' }}
                         </div>
                     </div>

@@ -12,6 +12,17 @@
 
         </h1>
 
+        {{-- Mostrar errores de validación --}}
+        @if ($errors->any())
+            <div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded-xl mb-6">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="/admin/usuarios" method="POST">
 
             @csrf
