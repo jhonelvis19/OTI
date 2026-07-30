@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FirmaController;
+use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\SeguridadController;
+use App\Http\Controllers\PlantillaExcelController;
+use App\Http\Controllers\ExportacionExcelController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -29,12 +34,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/informes', [InformeController::class, 'index']);
 
-        Route::get('/configuracion', function () {
-            return view('admin.configuracion.index');
-        });
 
-        Route::post('/configuracion/firma', [FirmaController::class, 'guardarFirmaPerfil']);
-        Route::delete('/configuracion/firma', [FirmaController::class, 'eliminarFirmaPerfil']);
 
         Route::get('/usuarios', [UsuarioController::class, 'index']);
 
@@ -78,14 +78,33 @@ Route::middleware(['auth'])->group(function () {
 
         Route::put('/informes/{informe}', [InformeController::class, 'update']);
 
-        Route::get('/perfil', function () {
-            return view('usuario.perfil.index');
-        });
-
-        Route::post('/perfil/firma', [FirmaController::class, 'guardarFirmaPerfil']);
-        Route::delete('/perfil/firma', [FirmaController::class, 'eliminarFirmaPerfil']);
-
     });
+
+    // Configuraciones Compartidas
+    Route::middleware('auth')->prefix('configuraciones')->name('configuraciones.')->group(function () {
+        Route::get('/', [ConfiguracionController::class, 'index'])->name('index');
+        
+        Route::get('/perfil', [PerfilController::class, 'edit'])->name('perfil.edit');
+        Route::put('/perfil', [PerfilController::class, 'update'])->name('perfil.update');
+
+        Route::get('/firma', [FirmaController::class, 'edit'])->name('firma.edit');
+        Route::put('/firma', [FirmaController::class, 'update'])->name('firma.update');
+        Route::post('/firma', [FirmaController::class, 'guardarFirmaPerfil'])->name('firma.store');
+        Route::delete('/firma', [FirmaController::class, 'eliminarFirmaPerfil'])->name('firma.destroy');
+
+        Route::get('/seguridad', [SeguridadController::class, 'edit'])->name('seguridad.edit');
+        Route::put('/seguridad', [SeguridadController::class, 'update'])->name('seguridad.update');
+    });
+
+    // Plantilla Excel (Solo Admin)
+    Route::middleware(['auth', 'rol:admin'])->prefix('configuraciones/plantilla')->name('configuraciones.plantilla.')->group(function () {
+        Route::get('/', [PlantillaExcelController::class, 'index'])->name('index');
+        Route::get('/descargar', [PlantillaExcelController::class, 'download'])->name('download');
+        Route::put('/actualizar', [PlantillaExcelController::class, 'update'])->name('update');
+    });
+
+    // Exportación
+    Route::post('/historial/exportar-excel', [ExportacionExcelController::class, 'exportar'])->middleware('auth')->name('historial.exportar-excel');
 
 });
 
