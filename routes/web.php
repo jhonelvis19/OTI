@@ -88,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/perfil', [PerfilController::class, 'update'])->name('perfil.update');
 
         Route::get('/firma', [FirmaController::class, 'edit'])->name('firma.edit');
-        Route::put('/firma', [FirmaController::class, 'update'])->name('firma.update');
+        Route::put('/firma', [FirmaController::class, 'guardarFirmaPerfil'])->name('firma.update');
         Route::post('/firma', [FirmaController::class, 'guardarFirmaPerfil'])->name('firma.store');
         Route::delete('/firma', [FirmaController::class, 'eliminarFirmaPerfil'])->name('firma.destroy');
 

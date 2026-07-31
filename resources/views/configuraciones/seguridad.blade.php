@@ -2,55 +2,49 @@
 
 @section('config_content')
 
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+<div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100/80 space-y-6">
     
-    <div class="px-6 py-5 border-b border-slate-100 bg-slate-50">
-        <h2 class="text-lg font-bold text-slate-800">Seguridad</h2>
-        <p class="text-sm text-slate-500 mt-1">Cambie su contraseña de acceso.</p>
+    <div class="border-b border-slate-100 pb-4">
+        <h2 class="text-lg font-bold text-slate-800">Seguridad de la Cuenta</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Actualice su contraseña de acceso al sistema OTI.</p>
     </div>
 
-    <div class="p-6">
-        <form action="{{ route('configuraciones.seguridad.update') }}" method="POST">
-            @csrf
-            @method('PUT')
+    <form action="{{ route('configuraciones.seguridad.update') }}" method="POST" class="space-y-6 max-w-xl">
+        @csrf
+        @method('PUT')
 
-            <div class="max-w-md">
-                
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Contraseña actual</label>
-                    <input type="password" name="password_actual" required
-                           class="w-full rounded-xl border {{ $errors->has('password_actual') ? 'border-red-400 bg-red-50' : 'border-slate-200' }} px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition">
-                    @error('password_actual')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Contraseña actual</label>
+            <input type="password" name="password_actual" required
+                   class="w-full rounded-xl border {{ $errors->has('password_actual') ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-slate-50/70' }} px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white outline-none transition">
+            @error('password_actual')
+                <p class="text-rose-500 text-xs mt-1 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
 
-                <div class="mb-6 border-t border-slate-100 pt-6">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Nueva contraseña</label>
-                    <input type="password" name="password" required
-                           class="w-full rounded-xl border {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-slate-200' }} px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition">
-                    <p class="text-xs text-slate-400 mt-2">Debe contener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un número.</p>
-                    @error('password')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+        <div class="border-t border-slate-100 pt-6">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Nueva contraseña</label>
+            <input type="password" name="password" required
+                   class="w-full rounded-xl border {{ $errors->has('password') ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-slate-50/70' }} px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white outline-none transition">
+            <p class="text-[11px] text-slate-400 mt-1.5">Debe contener mínimo 8 caracteres, al menos una mayúscula, una minúscula y un número.</p>
+            @error('password')
+                <p class="text-rose-500 text-xs mt-1 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
 
-                <div class="mb-8">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Confirmar nueva contraseña</label>
-                    <input type="password" name="password_confirmation" required
-                           class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition">
-                </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Confirmar nueva contraseña</label>
+            <input type="password" name="password_confirmation" required
+                   class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-xs sm:text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white outline-none transition">
+        </div>
 
-                <div class="flex justify-start">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-xl transition shadow-sm">
-                        Cambiar contraseña
-                    </button>
-                </div>
+        <div class="pt-4 border-t border-slate-100">
+            <button type="submit" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-lg shadow-violet-500/25 transition-all hover:scale-[1.02] active:scale-95">
+                Cambiar contraseña
+            </button>
+        </div>
 
-            </div>
-
-        </form>
-    </div>
+    </form>
 
 </div>
 

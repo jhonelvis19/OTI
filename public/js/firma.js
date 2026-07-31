@@ -54,6 +54,44 @@ document.addEventListener('DOMContentLoaded', function () {
     let personaFirmaConfirmada = false;
     let tecnicoFirmaConfirmada = false;
 
+    /**
+     * Helper para comprimir y redimensionar fotos de firmas (evita desbordamiento de búfer POST errno=28)
+     */
+    function compressBase64Image(dataUrl, maxWidth, maxHeight, quality, callback) {
+        const img = new Image();
+        img.onload = function () {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+            }
+
+            const cvs = document.createElement('canvas');
+            cvs.width = width;
+            cvs.height = height;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedDataUrl = cvs.toDataURL('image/jpeg', quality);
+            callback(compressedDataUrl);
+        };
+        img.onerror = function() {
+            callback(dataUrl);
+        };
+        img.src = dataUrl;
+    }
+
     // Resize del canvas para SignaturePad
     function resizeCanvas(canvas) {
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -70,10 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
             penColor: 'rgb(0, 0, 0)'
         });
         
-        // Limpiar el pad si se rota la pantalla o se cambia el tamaño
         window.addEventListener("resize", function() {
-            // Nota: resize limpia el canvas, así que lo manejamos con cuidado
-            // Solo redimensionamos si está vacío o si es necesario
             if (pad.isEmpty()) {
                 resizeCanvas(canvas);
             }
@@ -86,10 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btnIngresarFirmas.addEventListener('click', function (e) {
             e.preventDefault();
 
-            // Limpiar errores previos de JS
             document.querySelectorAll('.js-error-msg').forEach(el => el.remove());
 
-            // Validación rápida en frontend de campos requeridos antes de pasar a firmar
             const camposRequeridos = [
                 { id: 'nombre_atendido', nombre: 'Nombre de la persona atendida' },
                 { id: 'dni_atendido', nombre: 'DNI de la persona atendida' },
@@ -106,18 +139,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             function mostrarError(el, mensaje) {
                 hayErrores = true;
-                el.classList.add('border-red-400', 'bg-red-50');
-                el.classList.remove('border-indigo-300', 'bg-slate-50');
+                el.classList.add('border-rose-400', 'bg-rose-50');
                 
                 const errorP = document.createElement('p');
-                errorP.className = 'text-red-500 text-sm mt-1 js-error-msg';
+                errorP.className = 'text-rose-500 text-xs mt-1 js-error-msg font-medium';
                 errorP.innerText = mensaje;
                 el.parentNode.appendChild(errorP);
             }
 
             function limpiarError(el) {
-                el.classList.remove('border-red-400', 'bg-red-50');
-                el.classList.add('border-indigo-300', 'bg-slate-50');
+                el.classList.remove('border-rose-400', 'bg-rose-50');
             }
 
             camposRequeridos.forEach(function (campo) {
@@ -131,13 +162,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // Verificar DNI
             const dniEl = document.getElementById('dni_atendido');
             if (dniEl && dniEl.value.trim() && dniEl.value.trim().length !== 8) {
                 mostrarError(dniEl, 'El DNI debe tener exactamente 8 dígitos.');
             }
 
-            // Verificar si el problema solucionado es "no" y requiere resolución técnica
             const solucionadoNo = document.getElementById('solucionado_no');
             const resolucion = document.getElementById('resolucion_tecnica');
             if (solucionadoNo && solucionadoNo.checked && resolucion) {
@@ -149,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (hayErrores) {
-                // Buscar el primer error y scroll
                 const primerError = document.querySelector('.js-error-msg');
                 if (primerError && primerError.previousElementSibling) {
                     primerError.previousElementSibling.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -158,11 +186,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Ocultar formulario, mostrar sección de firmas
             formFieldsContainer.classList.add('hidden');
             seccionFirmas.classList.remove('hidden');
 
-            // Mostrar el primer paso: Persona Atendida
             mostrarPasoPersona();
         });
     }
@@ -185,18 +211,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // LÓGICA PASO 1: PERSONA ATENDIDA
     // ==========================================
 
-    // Opción Dibujar Persona
     btnPersonaMetodoDibujar.addEventListener('click', function () {
-        btnPersonaMetodoDibujar.classList.add('bg-indigo-600', 'text-white');
-        btnPersonaMetodoDibujar.classList.remove('bg-slate-100', 'text-slate-700');
-        btnPersonaMetodoFoto.classList.remove('bg-indigo-600', 'text-white');
-        btnPersonaMetodoFoto.classList.add('bg-slate-100', 'text-slate-700');
+        btnPersonaMetodoDibujar.classList.add('bg-violet-600', 'text-white');
+        btnPersonaMetodoDibujar.classList.remove('bg-white', 'text-slate-700');
+        btnPersonaMetodoFoto.classList.remove('bg-violet-600', 'text-white');
+        btnPersonaMetodoFoto.classList.add('bg-white', 'text-slate-700');
 
         contenedorPersonaCanvas.classList.remove('hidden');
         contenedorPersonaFoto.classList.add('hidden');
         previewPersonaContainer.classList.add('hidden');
 
-        // Inicializar canvas
         if (!padPersona) {
             padPersona = initPad(canvasPersona);
         } else {
@@ -207,7 +231,6 @@ document.addEventListener('DOMContentLoaded', function () {
         btnConfirmarPersona.disabled = true;
         btnConfirmarPersona.classList.add('opacity-50', 'cursor-not-allowed');
 
-        // Monitorear trazo
         canvasPersona.addEventListener('pointerup', checkPersonaCanvas);
         canvasPersona.addEventListener('mouseup', checkPersonaCanvas);
         canvasPersona.addEventListener('touchend', checkPersonaCanvas);
@@ -220,12 +243,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Opción Foto Persona
     btnPersonaMetodoFoto.addEventListener('click', function () {
-        btnPersonaMetodoFoto.classList.add('bg-indigo-600', 'text-white');
-        btnPersonaMetodoFoto.classList.remove('bg-slate-100', 'text-slate-700');
-        btnPersonaMetodoDibujar.classList.remove('bg-indigo-600', 'text-white');
-        btnPersonaMetodoDibujar.classList.add('bg-slate-100', 'text-slate-700');
+        btnPersonaMetodoFoto.classList.add('bg-violet-600', 'text-white');
+        btnPersonaMetodoFoto.classList.remove('bg-white', 'text-slate-700');
+        btnPersonaMetodoDibujar.classList.remove('bg-violet-600', 'text-white');
+        btnPersonaMetodoDibujar.classList.add('bg-white', 'text-slate-700');
 
         contenedorPersonaCanvas.classList.add('hidden');
         contenedorPersonaFoto.classList.remove('hidden');
@@ -237,23 +259,24 @@ document.addEventListener('DOMContentLoaded', function () {
         btnConfirmarPersona.classList.add('opacity-50', 'cursor-not-allowed');
     });
 
-    // Evento al tomar foto persona
     inputPersonaFoto.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function (event) {
-                previewPersona.src = event.target.result;
-                previewPersonaContainer.classList.remove('hidden');
-                inputFirmaPersonaData.value = event.target.result; // base64
-                btnConfirmarPersona.disabled = false;
-                btnConfirmarPersona.classList.remove('opacity-50', 'cursor-not-allowed');
+                // Compresión optimizada para evitar desbordamiento errno=28
+                compressBase64Image(event.target.result, 800, 600, 0.7, function(compressedUrl) {
+                    previewPersona.src = compressedUrl;
+                    previewPersonaContainer.classList.remove('hidden');
+                    inputFirmaPersonaData.value = compressedUrl;
+                    btnConfirmarPersona.disabled = false;
+                    btnConfirmarPersona.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
             };
             reader.readAsDataURL(file);
         }
     });
 
-    // Limpiar Persona
     btnLimpiarPersona.addEventListener('click', function () {
         const metodo = inputFirmaPersonaMetodo.value;
         if (metodo === 'dibujada' && padPersona) {
@@ -271,38 +294,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Confirmar Persona
     btnConfirmarPersona.addEventListener('click', function () {
         const metodo = inputFirmaPersonaMetodo.value;
         if (metodo === 'dibujada') {
             if (padPersona && !padPersona.isEmpty()) {
-                inputFirmaPersonaData.value = padPersona.toDataURL('image/png');
-                personaFirmaConfirmada = true;
+                const rawUrl = padPersona.toDataURL('image/png');
+                compressBase64Image(rawUrl, 600, 400, 0.8, function(compressedUrl) {
+                    inputFirmaPersonaData.value = compressedUrl;
+                    personaFirmaConfirmada = true;
+                    avanzarATecnico();
+                });
+                return;
             }
         } else if (metodo === 'foto') {
             if (inputFirmaPersonaData.value) {
                 personaFirmaConfirmada = true;
             }
         }
-
         if (personaFirmaConfirmada) {
-            // Avanzar al paso del Técnico
-            mostrarPasoTecnico();
-            // Si el técnico tiene firma guardada en perfil, activar por defecto
-            if (btnTecnicoMetodoPerfil) {
-                btnTecnicoMetodoPerfil.click();
-            } else {
-                btnTecnicoMetodoDibujar.click();
-            }
+            avanzarATecnico();
         }
     });
 
+    function avanzarATecnico() {
+        mostrarPasoTecnico();
+        if (btnTecnicoMetodoPerfil) {
+            btnTecnicoMetodoPerfil.click();
+        } else {
+            btnTecnicoMetodoDibujar.click();
+        }
+    }
 
     // ==========================================
     // LÓGICA PASO 2: TÉCNICO
     // ==========================================
 
-    // Opción Usar Perfil Técnico
     if (btnTecnicoMetodoPerfil) {
         btnTecnicoMetodoPerfil.addEventListener('click', function () {
             setTecnicoMetodoActivo(btnTecnicoMetodoPerfil);
@@ -312,13 +338,12 @@ document.addEventListener('DOMContentLoaded', function () {
             previewTecnicoContainer.classList.add('hidden');
 
             inputFirmaTecnicoMetodo.value = 'perfil';
-            inputFirmaTecnicoData.value = 'perfil'; // Indicador para el backend
+            inputFirmaTecnicoData.value = 'perfil';
             btnConfirmarTecnico.disabled = false;
             btnConfirmarTecnico.classList.remove('opacity-50', 'cursor-not-allowed');
         });
     }
 
-    // Opción Dibujar Técnico
     btnTecnicoMetodoDibujar.addEventListener('click', function () {
         setTecnicoMetodoActivo(btnTecnicoMetodoDibujar);
         if (contenedorTecnicoPerfil) contenedorTecnicoPerfil.classList.add('hidden');
@@ -337,7 +362,6 @@ document.addEventListener('DOMContentLoaded', function () {
         btnConfirmarTecnico.disabled = true;
         btnConfirmarTecnico.classList.add('opacity-50', 'cursor-not-allowed');
 
-        // Monitorear trazo
         canvasTecnico.addEventListener('pointerup', checkTecnicoCanvas);
         canvasTecnico.addEventListener('mouseup', checkTecnicoCanvas);
         canvasTecnico.addEventListener('touchend', checkTecnicoCanvas);
@@ -350,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Opción Foto Técnico
     btnTecnicoMetodoFoto.addEventListener('click', function () {
         setTecnicoMetodoActivo(btnTecnicoMetodoFoto);
         if (contenedorTecnicoPerfil) contenedorTecnicoPerfil.classList.add('hidden');
@@ -364,23 +387,24 @@ document.addEventListener('DOMContentLoaded', function () {
         btnConfirmarTecnico.classList.add('opacity-50', 'cursor-not-allowed');
     });
 
-    // Evento foto técnico
     inputTecnicoFoto.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function (event) {
-                previewTecnico.src = event.target.result;
-                previewTecnicoContainer.classList.remove('hidden');
-                inputFirmaTecnicoData.value = event.target.result; // base64
-                btnConfirmarTecnico.disabled = false;
-                btnConfirmarTecnico.classList.remove('opacity-50', 'cursor-not-allowed');
+                // Compresión optimizada foto técnico
+                compressBase64Image(event.target.result, 800, 600, 0.7, function(compressedUrl) {
+                    previewTecnico.src = compressedUrl;
+                    previewTecnicoContainer.classList.remove('hidden');
+                    inputFirmaTecnicoData.value = compressedUrl;
+                    btnConfirmarTecnico.disabled = false;
+                    btnConfirmarTecnico.classList.remove('opacity-50', 'cursor-not-allowed');
+                });
             };
             reader.readAsDataURL(file);
         }
     });
 
-    // Limpiar Técnico
     btnLimpiarTecnico.addEventListener('click', function () {
         const metodo = inputFirmaTecnicoMetodo.value;
         if (metodo === 'dibujada' && padTecnico) {
@@ -398,13 +422,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Confirmar Técnico
     btnConfirmarTecnico.addEventListener('click', function () {
         const metodo = inputFirmaTecnicoMetodo.value;
         if (metodo === 'dibujada') {
             if (padTecnico && !padTecnico.isEmpty()) {
-                inputFirmaTecnicoData.value = padTecnico.toDataURL('image/png');
-                tecnicoFirmaConfirmada = true;
+                const rawUrl = padTecnico.toDataURL('image/png');
+                compressBase64Image(rawUrl, 600, 400, 0.8, function(compressedUrl) {
+                    inputFirmaTecnicoData.value = compressedUrl;
+                    tecnicoFirmaConfirmada = true;
+                    finalizarFirmas();
+                });
+                return;
             }
         } else if (metodo === 'foto') {
             if (inputFirmaTecnicoData.value) {
@@ -415,46 +443,45 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (tecnicoFirmaConfirmada) {
-            // Mostrar y habilitar botón de Guardar
-            btnGuardarInforme.classList.remove('hidden');
-            btnGuardarInforme.disabled = false;
-            btnGuardarInforme.classList.remove('opacity-50', 'cursor-not-allowed');
-
-            // Ocultar botón de Ingresar Firmas para que no se duplique
-            if (btnIngresarFirmas) {
-                btnIngresarFirmas.classList.add('hidden');
-            }
-
-            // Desplazarse al botón de guardar
-            setTimeout(function () {
-                btnGuardarInforme.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 200);
-
-            // Efecto visual de que está listo para guardar
-            btnConfirmarTecnico.innerText = '✓ Firma Confirmada';
-            btnConfirmarTecnico.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-            btnConfirmarTecnico.classList.add('bg-emerald-600', 'text-white');
+            finalizarFirmas();
         }
     });
+
+    function finalizarFirmas() {
+        btnGuardarInforme.classList.remove('hidden');
+        btnGuardarInforme.disabled = false;
+        btnGuardarInforme.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        if (btnIngresarFirmas) {
+            btnIngresarFirmas.classList.add('hidden');
+        }
+
+        setTimeout(function () {
+            btnGuardarInforme.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 200);
+
+        btnConfirmarTecnico.innerText = '✓ Firma Confirmada';
+        btnConfirmarTecnico.classList.remove('bg-violet-600', 'hover:bg-violet-700');
+        btnConfirmarTecnico.classList.add('bg-emerald-600', 'text-white');
+    }
 
     function setTecnicoMetodoActivo(activeBtn) {
         const btns = [btnTecnicoMetodoPerfil, btnTecnicoMetodoDibujar, btnTecnicoMetodoFoto];
         btns.forEach(btn => {
             if (btn) {
                 if (btn === activeBtn) {
-                    btn.classList.add('bg-indigo-600', 'text-white');
-                    btn.classList.remove('bg-slate-100', 'text-slate-700');
+                    btn.classList.add('bg-violet-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-slate-700');
                 } else {
-                    btn.classList.remove('bg-indigo-600', 'text-white');
-                    btn.classList.add('bg-slate-100', 'text-slate-700');
+                    btn.classList.remove('bg-violet-600', 'text-white');
+                    btn.classList.add('bg-white', 'text-slate-700');
                 }
             }
         });
         
-        // Reset confirmation state if they switch methods
         tecnicoFirmaConfirmada = false;
         btnConfirmarTecnico.innerText = 'Confirmar Firma';
-        btnConfirmarTecnico.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        btnConfirmarTecnico.classList.add('bg-violet-600', 'hover:bg-violet-700');
         btnConfirmarTecnico.classList.remove('bg-emerald-600');
         btnGuardarInforme.disabled = true;
         btnGuardarInforme.classList.add('hidden', 'opacity-50', 'cursor-not-allowed');
@@ -463,7 +490,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Volver de firmas al formulario
     const btnVolverFormulario = document.getElementById('btn-volver-formulario');
     if (btnVolverFormulario) {
         btnVolverFormulario.addEventListener('click', function () {
@@ -471,13 +497,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 seccionFirmas.classList.add('hidden');
                 formFieldsContainer.classList.remove('hidden');
                 
-                // Reset estados
                 personaFirmaConfirmada = false;
                 tecnicoFirmaConfirmada = false;
                 inputFirmaPersonaData.value = '';
                 inputFirmaTecnicoData.value = '';
                 
-                // Re-ocultar botón Guardar y volver a mostrar botón Firmas
                 btnGuardarInforme.disabled = true;
                 btnGuardarInforme.classList.add('hidden', 'opacity-50', 'cursor-not-allowed');
                 if (btnIngresarFirmas) {

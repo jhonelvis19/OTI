@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class FirmaController extends Controller
 {
+    public function edit()
+    {
+        return view('configuraciones.firma');
+    }
+
     public function guardarFirmaPerfil(Request $request)
     {
         $user = Auth::user();
@@ -34,38 +39,40 @@ class FirmaController extends Controller
 
         $firmaPath = null;
 
-        if ($request->metodo_firma === 'dibujada') {
-            $request->validate([
-                'firma_base64' => 'required|string',
-            ], [
-                'firma_base64.required' => 'Debe dibujar su firma en pantalla.',
-            ]);
-
-            // Decodificar Base64
+        if ($request->filled('firma_base64')) {
             $data = $request->firma_base64;
             if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
                 $data = substr($data, strpos($data, ',') + 1);
                 $type = strtolower($type[1]); // png, jpg, jpeg
 
                 if (!in_array($type, ['png', 'jpg', 'jpeg', 'webp'])) {
-                    return response()->json(['success' => false, 'message' => 'Formato de imagen inválido.'], 400);
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Formato de imagen inválido.'], 400);
+                    }
+                    return back()->withErrors(['firma_base64' => 'Formato de imagen inválido.']);
                 }
 
                 $data = str_replace(' ', '+', $data);
                 $data = base64_decode($data);
 
                 if ($data === false) {
-                    return response()->json(['success' => false, 'message' => 'Error al decodificar la firma.'], 400);
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Error al decodificar la firma.'], 400);
+                    }
+                    return back()->withErrors(['firma_base64' => 'Error al decodificar la firma.']);
                 }
 
-                // Generar nombre de archivo
-                $filename = 'firmas/usuarios/usuario_' . $user->id . '.png';
+                $extension = ($type === 'jpeg') ? 'jpg' : $type;
+                $filename = 'firmas/usuarios/usuario_' . $user->id . '.' . $extension;
                 Storage::disk('public')->put($filename, $data);
                 $firmaPath = $filename;
             } else {
-                return response()->json(['success' => false, 'message' => 'Datos de firma inválidos.'], 400);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Datos de firma inválidos.'], 400);
+                }
+                return back()->withErrors(['firma_base64' => 'Datos de firma inválidos.']);
             }
-        } elseif ($request->metodo_firma === 'foto') {
+        } elseif ($request->hasFile('firma_foto')) {
             $request->validate([
                 'firma_foto' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
             ], [
@@ -75,11 +82,19 @@ class FirmaController extends Controller
                 'firma_foto.max' => 'La imagen no debe superar los 2MB.',
             ]);
 
-            // Guardar archivo
             $file = $request->file('firma_foto');
             $filename = 'usuario_' . $user->id . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('firmas/usuarios', $filename, 'public');
             $firmaPath = $path;
+        } else {
+            $mensajeError = ($request->metodo_firma === 'foto')
+                ? 'Debe tomar o cargar una fotografía de su firma.'
+                : 'Debe dibujar su firma en pantalla.';
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $mensajeError], 400);
+            }
+            return back()->withErrors(['metodo_firma' => $mensajeError]);
         }
 
         if ($firmaPath) {

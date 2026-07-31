@@ -1,30 +1,30 @@
 <header class="fixed top-0 left-0 right-0 z-50 h-20 bg-white border-b border-slate-200 shadow-sm">
 
-<div class="max-w-7xl w-full h-full flex items-center min-w-0 px-4 relative">
+<div class="max-w-7xl w-full h-full flex items-center justify-between min-w-0 px-4 sm:px-6 relative">
 
-        <!-- IMAGEN MÁS A LA IZQUIERDA -->
+        <!-- LOGO OTI MÁS GRANDE -->
         <img src="{{ asset('images/oti-ofic.png') }}"
-             alt="Logo"
-             class="h-12 w-auto object-contain flex-shrink-0 mr-2">
+             alt="Logo OTI"
+             class="h-28 sm:h-32 -my-5 sm:-my-7 w-auto object-contain flex-shrink-0 filter drop-shadow-md transition-transform hover:scale-105">
 
         <!-- TEXTO -->
-        <div class="min-w-0 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-            <h2 class="text-lg font-bold text-slate-700 truncate">
+        <div class="min-w-0 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center hidden sm:block">
+            <h2 class="text-base font-extrabold text-slate-800 tracking-wide uppercase truncate">
                 SUB UNIDAD DE SOPORTE Y MANTENIMIENTO
             </h2>
-            <p class="text-sm text-slate-500 truncate">
+            <p class="text-xs text-slate-500 truncate">
                 Sistema de Gestión de Actas de Mantenimiento
             </p>
         </div>
 
-        <!-- DERECHA -->
-        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+        <!-- LOGO SUNEDU MÁS GRANDE -->
+        <div class="flex items-center gap-3 flex-shrink-0 ml-auto">
             <img src="{{ asset('images/sunedu_logo.png') }}"
-             alt="Logo"
-             class="h-12 w-auto object-contain flex-shrink-0 mr-2">
+                 alt="Logo SUNEDU"
+                 class="h-28 sm:h-32 -my-5 sm:-my-7 w-auto object-contain flex-shrink-0 filter drop-shadow-md transition-transform hover:scale-105">
         </div>
 
-
+</div>
 
 </header>
 
